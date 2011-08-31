@@ -1,8 +1,10 @@
 package com.brecord;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -120,6 +122,35 @@ public class BQuery extends TestCase {
 		db.close();
 		c.close();
 		return result;
+	}
+	
+	public <T extends BRecord> Boolean insert(T valObj) {
+		Field[] cols = valObj.getClass().getFields();
+		ContentValues vals = new ContentValues();
+		for(int i = 0; i < cols.length; i++) {
+			String col = cols[i].getName();
+			String val;
+			try {
+				val = cols[i].get(valObj).toString();
+				if (! col.equalsIgnoreCase("id")) {
+					vals.put(col, val);
+				}
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+		SQLiteDatabase db = BConfig.config.getWritableDatabase();
+		int new_id = (int)db.insert(getTableName(), null, vals);
+		db.close();
+		
+		if (new_id > 0) {
+			valObj.setProperty("id", new_id);
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	/**

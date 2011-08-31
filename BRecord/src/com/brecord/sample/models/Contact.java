@@ -4,9 +4,9 @@ import com.brecord.BRecord;
 
 public class Contact extends BRecord {
 	
-	protected String first_name = "";
-	protected String last_name = "";
-	protected String phone = "";
+	public String first_name = "";
+	public String last_name = "";
+	public String phone = "";
 	
 	
 	public Contact() {

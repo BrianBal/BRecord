@@ -21,7 +21,7 @@ public class BRecordTest extends TestCase {
 		SQLiteDatabase db = BConfig.config.getReadableDatabase();
 		BConfig.config.migrate(db);
 		
-		for(int i = 0; i < 10; i++)
+		for(int i = 0; i < 3; i++)
 		{
 			ContentValues vals = new ContentValues();
 			vals.put("first_name", "John");
@@ -37,10 +37,19 @@ public class BRecordTest extends TestCase {
 		super.tearDown();
 	}
 	
+	public void test_should_insert_record() {
+		Contact contact = new Contact();
+		contact.setFirstName("Bill");
+		contact.setLastName("James");
+		contact.setPhone("111-111-1111");
+		assertTrue(contact.save());
+		assertEquals(4, contact.id.intValue());
+	}
+	
 	public void test_should_resolve_the_correct_class() {
 		Contact contact = BR.find(Contact.class, 1);
 		// this will ensure its of the correct type
-		assertEquals("", contact.getFirstName());
+		assertEquals("John", contact.getFirstName());
 	}
 
 }
