@@ -7,6 +7,7 @@ import java.util.Iterator;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import junit.framework.TestCase;
 
@@ -93,6 +94,40 @@ public class BQuery extends TestCase {
 		return className;
 	}
 	
+	public ArrayList<Field> getFieldsForTableColumns() {
+		String tableName = getTableName();
+		BColumn[] cols = BSchema.schema.columnsForTable(tableName);
+		ArrayList<Field> fields = new ArrayList<Field>();
+		
+		if (cols != null) {
+			for(int i = 0; i < cols.length; i++) {
+				try {
+					fields.add(klass.getField(cols[i].name));
+				} catch (SecurityException e) {
+					Log.w("BRecord", "security exception for column '"+cols[i].name+"' for table '"+getTableName()+"'");
+					e.printStackTrace();
+				} catch (NoSuchFieldException e) {
+					Log.w("BRecord", "unknow field '"+cols[i].name+"' for table '"+getTableName()+"'");
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		return fields;
+	}
+	
+	public ArrayList<String> getTableColumns() {
+		String tableName = getTableName();
+		BColumn[] cols = BSchema.schema.columnsForTable(tableName);
+		ArrayList<String> columns = new ArrayList<String>();
+		if(cols != null) {
+			for(int i = 0; i < cols.length; i++) {
+				columns.add(cols[i].name);
+			}
+		}
+		return columns;
+	}
+	
 	public <T extends BRecord> ArrayList<T> executeSelectStatement() {
 		SQLiteDatabase db = BConfig.config.getReadableDatabase();
 		Cursor c = db.rawQuery(this.buildSelectStatement(), null);
@@ -103,10 +138,11 @@ public class BQuery extends TestCase {
 				try {
 					@SuppressWarnings("unchecked")
 					T row = (T) klass.newInstance(); 
-					String[] columnNames = c.getColumnNames();
-					for(int i = 0; i < columnNames.length; i++)
+					ArrayList<String> columnNames = this.getTableColumns();
+					Iterator<String> itr = columnNames.iterator();
+					while(itr.hasNext())
 					{
-						String col = columnNames[i];
+						String col = itr.next();
 						String val = c.getString(c.getColumnIndex(col));
 						row.setProperty(col, val);
 					}
@@ -125,13 +161,16 @@ public class BQuery extends TestCase {
 	}
 	
 	public <T extends BRecord> Boolean insert(T valObj) {
-		Field[] cols = valObj.getClass().getFields();
+		ArrayList<Field> cols = getFieldsForTableColumns();
 		ContentValues vals = new ContentValues();
-		for(int i = 0; i < cols.length; i++) {
-			String col = cols[i].getName();
+		
+		Iterator<Field> itr = cols.iterator();
+		while(itr.hasNext()) {
+			Field field = itr.next();
+			String col = field.getName();
 			String val;
 			try {
-				val = cols[i].get(valObj).toString();
+				val = field.get(valObj).toString();
 				if (! col.equalsIgnoreCase("id")) {
 					vals.put(col, val);
 				}
@@ -141,6 +180,7 @@ public class BQuery extends TestCase {
 				e.printStackTrace();
 			}
 		}
+		
 		SQLiteDatabase db = BConfig.config.getWritableDatabase();
 		int new_id = (int)db.insert(getTableName(), null, vals);
 		db.close();
@@ -154,13 +194,16 @@ public class BQuery extends TestCase {
 	}
 
 	public <T extends BRecord> Boolean update(T valObj) {
-		Field[] cols = valObj.getClass().getFields();
+		ArrayList<Field> cols = getFieldsForTableColumns();
 		ContentValues vals = new ContentValues();
-		for(int i = 0; i < cols.length; i++) {
-			String col = cols[i].getName();
+		
+		Iterator<Field> itr = cols.iterator();
+		while(itr.hasNext()) {
+			Field field = itr.next();
+			String col = field.getName();
 			String val;
 			try {
-				val = cols[i].get(valObj).toString();
+				val = field.get(valObj).toString();
 				if (! col.equalsIgnoreCase("id")) {
 					vals.put(col, val);
 				}
@@ -170,6 +213,7 @@ public class BQuery extends TestCase {
 				e.printStackTrace();
 			}
 		}
+		
 		SQLiteDatabase db = BConfig.config.getWritableDatabase();
 		String table = getTableName();
 		String id = valObj.id.toString();

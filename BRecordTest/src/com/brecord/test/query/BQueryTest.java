@@ -115,4 +115,9 @@ public class BQueryTest extends TestCase {
 		assertEquals("SELECT * FROM contacts WHERE (1=1) AND (where1) ORDER BY order1 LIMIT 20 OFFSET 30 ", sql);
 	}
 	
+	// TODO: add test to make sure all columns are being inserted with insert
+	// TODO: add test to make sure all columns are being updated with update
+	// TODO: add test to make sure all columns are being populated with select
+	// TODO: add test to make sure batch insert is working
+	// TODO: add test to make sure batch update is working
 }

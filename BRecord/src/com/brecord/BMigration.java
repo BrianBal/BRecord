@@ -6,13 +6,12 @@ import java.util.Iterator;
 import android.database.sqlite.SQLiteDatabase;
 
 public class BMigration {
-	public static ArrayList<BMigration> Migrations = new ArrayList<BMigration>();
 	public String table;
 	public BColumn[] columns;
 	
 	public static Boolean Migrate(SQLiteDatabase db) {
 		
-		Iterator<BMigration> itr = Migrations.iterator();
+		Iterator<BMigration> itr = BSchema.schema.tables.iterator();
 		while(itr.hasNext()) {
 			BMigration mig = itr.next();
 			String sql = mig.dropSQL();
@@ -27,7 +26,7 @@ public class BMigration {
 	public BMigration(String tableName, BColumn[] tableColumns) {
 		table = tableName;
 		columns = tableColumns;
-		Migrations.add(this);
+		BSchema.schema.tables.add(this);
 	}
 	
 	public String dropSQL() {
@@ -42,7 +41,7 @@ public class BMigration {
 			sql +=  ", ";
 			sql += columns[i].getColumnSQL();
 		}
-		sql += ")";
+		sql += ", created_at TEXT, updated_at TEXT)";
 		
 		return sql;
 	}

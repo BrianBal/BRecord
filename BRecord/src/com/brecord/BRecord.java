@@ -1,19 +1,24 @@
 package com.brecord;
 
 import java.lang.reflect.Field;
+import java.util.Date;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 public class BRecord {
 	
-	@SuppressWarnings("unused")
 	public Integer id = -1;
+	public Date created_at = null;
+	public Date updated_at = null;
 	
 	public BRecord() {
 		
 	}
 	
+	/**
+	 * @return
+	 */
 	public Boolean save() {
 		if (id > 0) {
 			return update();
@@ -22,16 +27,29 @@ public class BRecord {
 		}
 	}
 	
+	/**
+	 * @return
+	 */
 	public Boolean create() {
+		created_at = new Date();
+		updated_at = new Date();
 		BQuery query = new BQuery(this.getClass());
 		return query.insert(this);
 	}
 	
+	/**
+	 * @return
+	 */
 	public Boolean update() {
+		updated_at = new Date();
 		BQuery query = new BQuery(this.getClass());
 		return query.update(this);
 	}
 	
+	/**
+	 * @param property
+	 * @param val
+	 */
 	public void setProperty(String property, Object val) {
 		Field field;
 		try {
@@ -60,10 +78,4 @@ public class BRecord {
 		}
 	}
 	
-	/*
-	public Class getBaseClass()
-	public String getTableName();
-	public String getPrimaryKey();
-	public String[] getColumnNames();
-	*/
 }

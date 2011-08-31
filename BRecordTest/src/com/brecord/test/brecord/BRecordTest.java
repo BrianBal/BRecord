@@ -73,5 +73,26 @@ public class BRecordTest extends TestCase {
 		// this will ensure its of the correct type
 		assertEquals("John", contact.getFirstName());
 	}
-
+	
+	// TODO: add test to make sure set property works for String, Int, Double
+	// TODO: add test to make sure callback before_validation is called for create action
+	// TODO: add test to make sure callback after_validation is called for create action
+	// TODO: add test to make sure callback before_save is called for create action
+	// TODO: add test to make sure callback before_create is called for create action
+	// TODO: add test to make sure callback around_create is called for create action
+	// TODO: add test to make sure callback after_create is called for create action
+	// TODO: add test to make sure callback after_save is called for create action
+	// TODO: add test to make sure callback before_validation is called for update action
+	// TODO: add test to make sure callback after_validation is called for update action
+	// TODO: add test to make sure callback before_save is called for update action
+	// TODO: add test to make sure callback before_update is called for update action
+	// TODO: add test to make sure callback around_update is called for update action
+	// TODO: add test to make sure callback after_update is called for update action
+	// TODO: add test to make sure callback after_save is called for update action
+	// TODO: add test to make sure callback before_destroy is called for destroy action
+	// TODO: add test to make sure callback after_destroy is called for destroy action
+	// TODO: add test to make sure callback around_destroy is called for destroy action
+	// TODO: add test to make sure callback after_initialize is called after initialization
+	// TODO: add test to make sure callback after_find is a called after the record is selected
+	
 }
