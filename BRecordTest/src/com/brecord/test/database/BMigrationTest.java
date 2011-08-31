@@ -33,6 +33,7 @@ public class BMigrationTest extends TestCase {
 		printCursorContents(c);
 		assertEquals(1, c.getCount());
 		
+		c.close();
 		db.close();
 	}
 	
