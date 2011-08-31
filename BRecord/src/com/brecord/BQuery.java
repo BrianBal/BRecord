@@ -3,6 +3,9 @@ package com.brecord;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
 import junit.framework.TestCase;
 
 public class BQuery extends TestCase {
@@ -24,24 +27,20 @@ public class BQuery extends TestCase {
 	public <T extends BRecord> T first() {
 		limit = 1;
 		offset = 0;
-		String sql = this.buildSelectStatement();
-		T result = null;
-		try {
-			result = (T) klass.newInstance();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
+		
+		ArrayList<T> result = executeSelectStatement();
+		if (result != null && result.size() > 0)
+		{
+			return result.get(0);
 		}
-		return result;
+		return null;
 	}
 	
 	/**
 	 * @return
 	 */
 	public <T extends BRecord> ArrayList<T> all() {
-		String sql = this.buildSelectStatement();
-		return null;
+		return executeSelectStatement();
 	}
 	
 	/**
@@ -90,6 +89,37 @@ public class BQuery extends TestCase {
 		className = className.replaceAll(packageName, "").toLowerCase() + "s";
 		
 		return className;
+	}
+	
+	public <T extends BRecord> ArrayList<T> executeSelectStatement() {
+		SQLiteDatabase db = BConfig.config.getReadableDatabase();
+		Cursor c = db.rawQuery(this.buildSelectStatement(), null);
+		
+		ArrayList<T> result = new ArrayList<T>();
+		if(c.moveToFirst()) {
+			do {
+				try {
+					@SuppressWarnings("unchecked")
+					T row = (T) klass.newInstance(); 
+					String[] columnNames = c.getColumnNames();
+					for(int i = 0; i < columnNames.length; i++)
+					{
+						String col = columnNames[i];
+						String val = c.getString(c.getColumnIndex(col));
+						row.setProperty(col, val);
+					}
+					result.add(row);
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					e.printStackTrace();
+				}
+			} while (c.moveToNext());
+		}
+		
+		db.close();
+		c.close();
+		return result;
 	}
 	
 	/**

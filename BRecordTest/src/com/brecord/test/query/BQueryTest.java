@@ -3,6 +3,10 @@ package com.brecord.test.query;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+
+import com.brecord.BConfig;
 import com.brecord.BQuery;
 import com.brecord.BRecord;
 import com.brecord.sample.models.Contact;
@@ -17,6 +21,20 @@ public class BQueryTest extends TestCase {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
+		BConfig.config.dropDataBase();
+		SQLiteDatabase db = BConfig.config.getReadableDatabase();
+		BConfig.config.migrate(db);
+		
+		for(int i = 0; i < 10; i++)
+		{
+			ContentValues vals = new ContentValues();
+			vals.put("first_name", "John");
+			vals.put("last_name", "Doe");
+			vals.put("phone", "555-555-555" + i);
+			db.insert("contacts", null, vals);
+		}
+		
+		db.close();
 	}
 
 	protected void tearDown() throws Exception {

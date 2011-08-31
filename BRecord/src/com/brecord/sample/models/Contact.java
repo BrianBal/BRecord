@@ -4,12 +4,21 @@ import com.brecord.BRecord;
 
 public class Contact extends BRecord {
 	
-	private String first_name = "";
-	private String last_name = "";
-	private String phone = "";
+	protected String first_name = "";
+	protected String last_name = "";
+	protected String phone = "";
+	
 	
 	public Contact() {
 		
+	}
+	
+	public Integer getId() {
+		return id;
+	}
+	
+	public void setId(Integer value) {
+		id = value;
 	}
 	
 	public String getFirstName() {
