@@ -1,6 +1,7 @@
 package com.brecord.test.brecord;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.brecord.BConfig;
@@ -44,6 +45,27 @@ public class BRecordTest extends TestCase {
 		contact.setPhone("111-111-1111");
 		assertTrue(contact.save());
 		assertEquals(4, contact.id.intValue());
+	}
+	
+	public void test_should_update_record() {
+		Contact contact = new Contact();
+		contact.setFirstName("Billy");
+		contact.setLastName("James");
+		contact.setPhone("111-111-1111");
+		contact.save();
+		
+		contact.setFirstName("Edwin");
+		Boolean ret = contact.save();
+		
+		SQLiteDatabase db = BConfig.config.getReadableDatabase();
+		Cursor c = db.query("contacts", null, "id = 4", null, null, null, null);
+		String first_name = "";
+		if(c.moveToFirst()) {
+			first_name = c.getString(c.getColumnIndex("first_name"));
+		}
+		c.close();
+		db.close();
+		assertEquals("Edwin", first_name);
 	}
 	
 	public void test_should_resolve_the_correct_class() {

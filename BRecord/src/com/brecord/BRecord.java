@@ -28,8 +28,8 @@ public class BRecord {
 	}
 	
 	public Boolean update() {
-		return false;
-		
+		BQuery query = new BQuery(this.getClass());
+		return query.update(this);
 	}
 	
 	public void setProperty(String property, Object val) {

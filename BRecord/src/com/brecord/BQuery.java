@@ -152,6 +152,36 @@ public class BQuery extends TestCase {
 			return false;
 		}
 	}
+
+	public <T extends BRecord> Boolean update(T valObj) {
+		Field[] cols = valObj.getClass().getFields();
+		ContentValues vals = new ContentValues();
+		for(int i = 0; i < cols.length; i++) {
+			String col = cols[i].getName();
+			String val;
+			try {
+				val = cols[i].get(valObj).toString();
+				if (! col.equalsIgnoreCase("id")) {
+					vals.put(col, val);
+				}
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+		SQLiteDatabase db = BConfig.config.getWritableDatabase();
+		String table = getTableName();
+		String id = valObj.id.toString();
+		int changed = db.update(table, vals, "id = '" + id + "'", null);
+		db.close();
+		
+		if (changed > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	
 	/**
 	 * @return
