@@ -67,6 +67,14 @@ public class BRecord {
 	}
 	
 	/**
+	 * @return
+	 */
+	public Boolean destroy() {
+		// TODO: implement this
+		return false;
+	}
+	
+	/**
 	 * @param property
 	 * @param val
 	 */
@@ -96,6 +104,24 @@ public class BRecord {
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	
+	/* Associations */
+	protected void hasMany(Class klass) {
+		// TODO: implement this
+	}
+	
+	protected void hasOne(Class klass) {
+		// TODO: implement this
+	}
+	
+	protected void belongsTo(Class klass) {
+		// TODO: implement this
+	}
+	
+	protected void hasAndBelongsToMany(Class klass) {
+		// TODO: implement this
 	}
 	
 	
