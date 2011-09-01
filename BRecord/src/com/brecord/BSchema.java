@@ -18,4 +18,28 @@ public class BSchema {
 		}
 		return null;
 	}
+	
+	public String fieldNameForColumn(String table, String column) {
+		BColumn[] cols = this.columnsForTable(table);
+		String field = "";
+		for(int i = 0; i < cols.length; i++) {
+			if(cols[i].name.equalsIgnoreCase(column)) {
+				field = cols[i].fieldName;
+				break;
+			}
+		}
+		return field;
+	}
+	
+	public String columnNameForField(String table, String field) {
+		BColumn[] cols = this.columnsForTable(table);
+		String column = "";
+		for(int i = 0; i < cols.length; i++) {
+			if(cols[i].fieldName.equalsIgnoreCase(field)) {
+				column = cols[i].name;
+				break;
+			}
+		}
+		return column;
+	}
 }

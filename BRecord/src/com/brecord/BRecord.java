@@ -31,19 +31,39 @@ public class BRecord {
 	 * @return
 	 */
 	public Boolean create() {
+		beforeSave();
+		beforeCreate();
+		
 		created_at = new Date();
 		updated_at = new Date();
 		BQuery query = new BQuery(this.getClass());
-		return query.insert(this);
+		
+		if (query.insert(this)) {
+			afterSave();
+			afterCreate();
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	/**
 	 * @return
 	 */
 	public Boolean update() {
+		beforeSave();
+		beforeUpdate();
+		
 		updated_at = new Date();
 		BQuery query = new BQuery(this.getClass());
-		return query.update(this);
+		
+		if (query.update(this)) {
+			afterSave();
+			afterUpdate();
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	/**
@@ -77,5 +97,16 @@ public class BRecord {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	/* Callbacks */
+	
+	protected void beforeSave() {}
+	protected void beforeCreate() {}
+	protected void beforeUpdate() {}
+	
+	protected void afterSave() {}
+	protected void afterCreate() {}
+	protected void afterUpdate() {}
 	
 }

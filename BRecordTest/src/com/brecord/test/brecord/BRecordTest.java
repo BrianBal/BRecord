@@ -40,21 +40,21 @@ public class BRecordTest extends TestCase {
 	
 	public void test_should_insert_record() {
 		Contact contact = new Contact();
-		contact.setFirstName("Bill");
-		contact.setLastName("James");
-		contact.setPhone("111-111-1111");
+		contact.firstName = "Bill";
+		contact.lastName = "James";
+		contact.phone = "111-111-1111";
 		assertTrue(contact.save());
 		assertEquals(4, contact.id.intValue());
 	}
 	
 	public void test_should_update_record() {
 		Contact contact = new Contact();
-		contact.setFirstName("Billy");
-		contact.setLastName("James");
-		contact.setPhone("111-111-1111");
+		contact.firstName = "Billy";
+		contact.lastName = "James";
+		contact.phone = "111-111-1111";
 		contact.save();
 		
-		contact.setFirstName("Edwin");
+		contact.firstName = "Edwin";
 		Boolean ret = contact.save();
 		
 		SQLiteDatabase db = BConfig.config.getReadableDatabase();
@@ -71,27 +71,84 @@ public class BRecordTest extends TestCase {
 	public void test_should_resolve_the_correct_class() {
 		Contact contact = BR.find(Contact.class, 1);
 		// this will ensure its of the correct type
-		assertEquals("John", contact.getFirstName());
+		assertEquals("John", contact.firstName);
+	}
+	
+	public void test_before_save_should_be_called_before_create() {
+		Contact contact = new Contact();
+		contact.firstName = "Bill";
+		contact.lastName = "James";
+		contact.phone = "111-111-1111";
+		contact.save();
+		assertEquals(contact.getDidCallBeforeSave(), true);
+	}
+	
+	public void test_before_create_should_be_called_before_create() {
+		Contact contact = new Contact();
+		contact.firstName = "Bill";
+		contact.lastName = "James";
+		contact.phone = "111-111-1111";
+		contact.save();
+		assertEquals(contact.getDidCallBeforeCreate(), true);
+	}
+	
+	public void test_after_create_should_be_called_with_create() {
+		Contact contact = new Contact();
+		contact.firstName = "Bill";
+		contact.lastName = "James";
+		contact.phone = "111-111-1111";
+		contact.save();
+		assertEquals(contact.getDidCallAfterCreate(), true);
+	}
+	
+	public void test_after_save_should_be_called_with_create() {
+		Contact contact = new Contact();
+		contact.firstName = "Bill";
+		contact.lastName = "James";
+		contact.phone = "111-111-1111";
+		contact.save();
+		assertEquals(contact.getDidCallAfterSave(), true);
+	}
+	
+	public void test_before_save_should_be_called_before_update() {
+		Contact contact = BR.find(Contact.class, 1);
+		contact.firstName = "Bill0";
+		contact.save();
+		assertEquals(contact.getDidCallBeforeSave(), true);
+	}
+	
+	public void test_before_update_should_be_called_before_update() {
+		Contact contact = BR.find(Contact.class, 1);
+		contact.firstName = "Bill1";
+		contact.save();
+		assertEquals(contact.getDidCallBeforeUpdate(), true);
+	}
+	
+	public void test_after_save_should_be_called_with_update() {
+		Contact contact = BR.find(Contact.class, 1);
+		contact.firstName = "Bill2";
+		contact.save();
+		assertEquals(contact.getDidCallAfterSave(), true);
+	}
+	
+	public void test_after_update_should_be_called_with_update() {
+		Contact contact = BR.find(Contact.class, 1);
+		contact.firstName = "Bill3";
+		contact.save();
+		assertEquals(contact.getDidCallAfterUpdate(), true);
 	}
 	
 	// TODO: add test to make sure set property works for String, Int, Double
+	
 	// TODO: add test to make sure callback before_validation is called for create action
 	// TODO: add test to make sure callback after_validation is called for create action
-	// TODO: add test to make sure callback before_save is called for create action
-	// TODO: add test to make sure callback before_create is called for create action
-	// TODO: add test to make sure callback around_create is called for create action
-	// TODO: add test to make sure callback after_create is called for create action
-	// TODO: add test to make sure callback after_save is called for create action
+	
 	// TODO: add test to make sure callback before_validation is called for update action
 	// TODO: add test to make sure callback after_validation is called for update action
-	// TODO: add test to make sure callback before_save is called for update action
-	// TODO: add test to make sure callback before_update is called for update action
-	// TODO: add test to make sure callback around_update is called for update action
-	// TODO: add test to make sure callback after_update is called for update action
-	// TODO: add test to make sure callback after_save is called for update action
+	
 	// TODO: add test to make sure callback before_destroy is called for destroy action
 	// TODO: add test to make sure callback after_destroy is called for destroy action
-	// TODO: add test to make sure callback around_destroy is called for destroy action
+	
 	// TODO: add test to make sure callback after_initialize is called after initialization
 	// TODO: add test to make sure callback after_find is a called after the record is selected
 	

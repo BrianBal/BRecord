@@ -1,5 +1,8 @@
 package com.brecord;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * @author bal
  * BColumn maps database columns to names and types
@@ -47,40 +50,28 @@ public class BColumn {
 	public Boolean canBeNull;
 	
 	/**
-	 * The setter method name of the mapped field
+	 * The field name that maps to this column
 	 */
-	public String setterMethodName;
-	
-	/**
-	 * The getter method name of the mapped field
-	 */
-	public String getterMethodName;
+	public String fieldName;
 	
 	public BColumn() {
 		name = "";
 		type = 0;
-		setterMethodName = "";
-		getterMethodName = "";
+		fieldName = "";
 		canBeNull = true;
 	}
 	
 	public BColumn(String columnName, int columnType) {
 		name = columnName;
 		type = columnType;
-		// TODO: convert column name to actual setter method name
-		setterMethodName = "set" + columnName;
-		// TODO: convert column name to actual getter method name
-		getterMethodName = "get" + columnName;
+		fieldName = columnNameToFieldName(columnName);
 		canBeNull = true;
 	}
 	
 	public BColumn(String columnName, int columnType, String theDefault) {
 		name = columnName;
 		type = columnType;
-		// TODO: convert column name to actual setter method name
-		setterMethodName = "set" + columnName;
-		// TODO: convert column name to actual getter method name
-		getterMethodName = "get" + columnName;
+		fieldName = columnNameToFieldName(columnName);
 		defaultValue = theDefault;
 		canBeNull = true;
 	}
@@ -88,11 +79,7 @@ public class BColumn {
 	public BColumn(String columnName, int columnType, String theDefault, Boolean canNull) {
 		name = columnName;
 		type = columnType;
-		// TODO: convert column name to actual setter method name
-		setterMethodName = "set" + columnName;
-		// TODO: convert column name to actual getter method name
-		getterMethodName = "get" + columnName;
-		defaultValue = theDefault;
+		fieldName = columnNameToFieldName(columnName);
 		canBeNull = canNull;
 	}
 	
@@ -124,5 +111,21 @@ public class BColumn {
 		return sql;
 	}
 	
-	
+	public String columnNameToFieldName(String input) {
+		input = input.toLowerCase();
+		String[]parts = input.split("_");
+		String output = "";
+		for(int i = 0; i < parts.length; i++) {
+			String part = parts[i];
+			if (i != 0) {
+				String start = part.substring(0, 1).toUpperCase();
+				String end = part.substring(1, part.length());
+				output += start + end;
+			} else {
+				output += part;
+			}
+		}
+		
+		return output;
+	}
 }

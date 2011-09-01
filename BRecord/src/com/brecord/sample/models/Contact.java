@@ -4,45 +4,55 @@ import com.brecord.BRecord;
 
 public class Contact extends BRecord {
 	
-	public String first_name = "";
-	public String last_name = "";
+	/* variables that are mapped to table columns */
+	public String firstName = "";
+	public String lastName = "";
 	public String phone = "";
 	
+	/* just used for testing */
+	private boolean didCallBeforeSave = false;
+	private boolean didCallBeforeCreate = false;
+	private boolean didCallBeforeUpdate = false;
+	
+	private boolean didCallAfterSave = false;
+	private boolean didCallAfterCreate = false;
+	private boolean didCallAfterUpdate = false;
 	
 	public Contact() {
 		
 	}
 	
-	public Integer getId() {
-		return id;
+	/* Callbacks */
+	protected void beforeSave() { didCallBeforeSave = true; }
+	protected void beforeCreate() { didCallBeforeCreate = true; }
+	protected void beforeUpdate() { didCallBeforeUpdate = true; }
+	
+	protected void afterSave() { didCallAfterSave = true; }
+	protected void afterCreate() { didCallAfterCreate = true; }
+	protected void afterUpdate() { didCallAfterUpdate = true; }
+	
+	public boolean getDidCallBeforeSave() {
+		return didCallBeforeSave;
 	}
 	
-	public void setId(Integer value) {
-		id = value;
+	public boolean getDidCallBeforeCreate() {
+		return didCallBeforeCreate;
 	}
 	
-	public String getFirstName() {
-		return first_name;
+	public boolean getDidCallBeforeUpdate() {
+		return didCallBeforeUpdate;
 	}
 	
-	public void setFirstName(String value) {
-		first_name = value;
+	public boolean getDidCallAfterSave() {
+		return didCallAfterSave;
 	}
 	
-	public String getLastName() {
-		return last_name;
+	public boolean getDidCallAfterCreate() {
+		return didCallAfterCreate;
 	}
 	
-	public void setLastName(String value) {
-		last_name = value;
-	}
-	
-	public String getPhone() {
-		return phone;
-	}
-	
-	public void setPhone(String value) {
-		phone = value;
+	public boolean getDidCallAfterUpdate() {
+		return didCallAfterUpdate;
 	}
 	
 }

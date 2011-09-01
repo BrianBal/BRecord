@@ -102,7 +102,8 @@ public class BQuery extends TestCase {
 		if (cols != null) {
 			for(int i = 0; i < cols.length; i++) {
 				try {
-					fields.add(klass.getField(cols[i].name));
+					
+					fields.add(klass.getField(cols[i].fieldName));
 				} catch (SecurityException e) {
 					Log.w("BRecord", "security exception for column '"+cols[i].name+"' for table '"+getTableName()+"'");
 					e.printStackTrace();
@@ -143,8 +144,9 @@ public class BQuery extends TestCase {
 					while(itr.hasNext())
 					{
 						String col = itr.next();
+						String fieldName = BSchema.schema.fieldNameForColumn(getTableName(), col);
 						String val = c.getString(c.getColumnIndex(col));
-						row.setProperty(col, val);
+						row.setProperty(fieldName, val);
 					}
 					result.add(row);
 				} catch (IllegalAccessException e) {
@@ -167,7 +169,8 @@ public class BQuery extends TestCase {
 		Iterator<Field> itr = cols.iterator();
 		while(itr.hasNext()) {
 			Field field = itr.next();
-			String col = field.getName();
+			String fs = field.getName();
+			String col = BSchema.schema.columnNameForField(getTableName(), fs);
 			String val;
 			try {
 				val = field.get(valObj).toString();
@@ -200,7 +203,8 @@ public class BQuery extends TestCase {
 		Iterator<Field> itr = cols.iterator();
 		while(itr.hasNext()) {
 			Field field = itr.next();
-			String col = field.getName();
+			String fs = field.getName();
+			String col = BSchema.schema.columnNameForField(getTableName(), fs);
 			String val;
 			try {
 				val = field.get(valObj).toString();

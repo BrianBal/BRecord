@@ -25,7 +25,15 @@ public class BMigration {
 	
 	public BMigration(String tableName, BColumn[] tableColumns) {
 		table = tableName;
-		columns = tableColumns;
+		
+		columns = new BColumn[tableColumns.length+3];
+		columns[0] = new BColumn("id", BColumn.TYPE_INTEGER);
+		columns[1] = new BColumn("created_at", BColumn.TYPE_TEXT);
+		columns[2] = new BColumn("updated_at", BColumn.TYPE_TEXT);
+		for(int i = 0; i < tableColumns.length; i++) {
+			columns[i+3] = tableColumns[i]; 
+		}
+		
 		BSchema.schema.tables.add(this);
 	}
 	
@@ -38,8 +46,10 @@ public class BMigration {
 	public String createSQL() {
 		String sql = "CREATE TABLE IF NOT EXISTS " + table + "( id INTEGER PRIMARY KEY AUTOINCREMENT";
 		for(int i = 0; i < columns.length; i++) {
-			sql +=  ", ";
-			sql += columns[i].getColumnSQL();
+			if( ! columns[i].name.equalsIgnoreCase("id") && ! columns[i].name.equalsIgnoreCase("created_at") && ! columns[i].name.equalsIgnoreCase("updated_at")) {
+				sql +=  ", ";
+				sql += columns[i].getColumnSQL();
+			}
 		}
 		sql += ", created_at TEXT, updated_at TEXT)";
 		
