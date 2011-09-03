@@ -3,6 +3,7 @@ package com.brecord.sample.models;
 import java.util.ArrayList;
 
 import com.brecord.BRecord;
+import com.brecord.association.BHasMany;
 
 public class Contact extends BRecord {
 	
@@ -11,15 +12,11 @@ public class Contact extends BRecord {
 	public String lastName = "";
 	public String phone = "";
 	
+	/* Associations */
+	public BHasMany phoneNumbers = new BHasMany(Contact.class, PhoneNumber.class);
+	
 	public Contact() {
 		
-	}
-	
-	/* Associations */
-	public ArrayList<PhoneNumber> phoneNumbers() {
-		// TODO: implement this
-		hasMany(PhoneNumber.class);
-		return null;
 	}
 	
 	/* Callbacks */

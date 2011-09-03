@@ -23,6 +23,22 @@ public class BQuery extends TestCase {
 		klass = type;
 	}
 	
+	public void setWhereConditions(ArrayList<String> value) {
+		conditions = value;
+	}
+	
+	public void setOrderBy(ArrayList<String> value) {
+		orders = value;
+	}
+	
+	public void setLimit(int value) {
+		limit = value;
+	}
+	
+	public void setOffset(int value) {
+		offset = value;
+	}
+	
 	/**
 	 * @return Null if no records where selected or the record object that was found
 	 */
