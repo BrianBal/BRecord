@@ -17,11 +17,19 @@ public class App extends Application {
 		Log.d("App", "Application onCreate: ");
 		
 		@SuppressWarnings("unused")
-		BMigration migration = new BMigration("contacts", new BColumn[] {
+		BMigration migration1 = new BMigration("contacts", new BColumn[] {
 				new BColumn("first_name", BColumn.TYPE_TEXT, "John", false),
 				new BColumn("last_name", BColumn.TYPE_TEXT, "Doe", false),
 				new BColumn("phone", BColumn.TYPE_TEXT, "555-555-5555", false)
 		});
+		
+		@SuppressWarnings("unused")
+		BMigration migration2 = new BMigration("phone_numbers", new BColumn[] {
+				new BColumn("contact_id", BColumn.TYPE_INTEGER),
+				new BColumn("label", BColumn.TYPE_TEXT, "mobile", false),
+				new BColumn("number", BColumn.TYPE_TEXT, "555-555-5555", false)
+		});
+		
 		BConfig.config = new BConfig(sApp, DATABASE_NAME, null, DATABASE_VERSION);
 	}
 	

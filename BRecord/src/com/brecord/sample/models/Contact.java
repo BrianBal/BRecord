@@ -13,10 +13,10 @@ public class Contact extends BRecord {
 	public String phone = "";
 	
 	/* Associations */
-	public BHasMany phoneNumbers = new BHasMany(Contact.class, PhoneNumber.class);
+	public BHasMany phoneNumbers;
 	
 	public Contact() {
-		
+		phoneNumbers = new BHasMany(this, PhoneNumber.class);
 	}
 	
 	/* Callbacks */

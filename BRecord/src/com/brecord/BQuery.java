@@ -102,12 +102,24 @@ public class BQuery extends TestCase {
 	 * @return
 	 */
 	public String getTableName() {
-		String packageName = klass.getPackage().getName() + ".";
-		String className = klass.getName();
-		// TODO: this need to be a little smarter
-		className = className.replaceAll(packageName, "").toLowerCase() + "s";
+		String key = "";
 		
-		return className;
+		String name = klass.getName();
+		String pkg = klass.getPackage().getName() + ".";
+		name = name.replace(pkg, "");
+		String[] parts = name.split("");
+		String pre = "";
+		for(int i = 0; i < parts.length; i++) {
+			if(parts[i].matches("[A-Z]")) {
+				key += pre + parts[i].toLowerCase();
+				pre = "_";
+			} else {
+				key += parts[i].toLowerCase();
+			}
+		}
+		key += "s";
+		
+		return key;
 	}
 	
 	public ArrayList<Field> getFieldsForTableColumns() {

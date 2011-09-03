@@ -12,7 +12,7 @@ public class PhoneNumber extends BRecord {
 	public String number = "";
 	
 	/* Associations */
-	public BHasOne contact = new BHasOne(Contact.class, PhoneNumber.class);
+	public BHasOne contact;
 	
 	public PhoneNumber() {
 		

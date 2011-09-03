@@ -1,16 +1,19 @@
 package com.brecord.association;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import com.brecord.BQuery;
+import com.brecord.BRecord;
+import com.brecord.BSchema;
 
-public class BAssociation {
+public class  BAssociation {
 	
 	/**
 	 * REQUIRED:
 	 * Specify the class name of the association.
 	 */
-	public Class parentKlass;
+	public BRecord parent;
 	
 	/**
 	 * REQUIRED:
@@ -49,10 +52,10 @@ public class BAssociation {
 	 */
 	public Boolean polymorphic = false;
 	
-	public BAssociation(Class pKlass, Class aKlass) {
-		parentKlass = pKlass;
+	public BAssociation(BRecord p, Class aKlass) {
+		parent = p;
 		associatedKlass = aKlass;
-		foreignKey = getForeignKeyFromClass(pKlass);
+		foreignKey = getForeignKeyFromClass(p.getClass());
 	}
 	
 	public String getForeignKeyFromClass(Class klass) {
@@ -76,12 +79,33 @@ public class BAssociation {
 		return key;
 	}
 	
+	public String getTableName(Class klass) {
+		String key = "";
+		
+		String name = klass.getName();
+		String pkg = klass.getPackage().getName() + ".";
+		name = name.replace(pkg, "");
+		String[] parts = name.split("");
+		String pre = "";
+		for(int i = 0; i < parts.length; i++) {
+			if(parts[i].matches("[A-Z]")) {
+				key += pre + parts[i].toLowerCase();
+				pre = "_";
+			} else {
+				key += parts[i].toLowerCase();
+			}
+		}
+		key += "s";
+		
+		return key;
+	}
+	
 	public BQuery get() {
 		BQuery query = new BQuery(associatedKlass);
 		query.setWhereConditions(conditions);
 		query.setOrderBy(orders);
 		query.setLimit(limit);
-		query.setOffset(offset);
+		query.setOffset(offset);		
 		return query;
 	}
 	

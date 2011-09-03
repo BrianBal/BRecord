@@ -16,6 +16,10 @@ public class BRecord {
 		
 	}
 	
+	public void setupAssociations() {
+		
+	}
+	
 	/**
 	 * @return
 	 */
