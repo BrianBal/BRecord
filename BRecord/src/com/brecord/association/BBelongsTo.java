@@ -4,6 +4,7 @@ import com.brecord.BRecord;
 
 public class BBelongsTo extends BAssociation {
 
+	@SuppressWarnings("rawtypes")
 	public BBelongsTo(BRecord p, Class aKlass) {
 		super(p, aKlass);
 		// TODO Auto-generated constructor stub

@@ -17,7 +17,7 @@ public class BConfig extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		try{
-			migrate(db);
+			migrate(db, 0);
 		}
 		catch(Exception e)
 		{
@@ -28,7 +28,7 @@ public class BConfig extends SQLiteOpenHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		try{
-			migrate(db);
+			migrate(db, oldVersion);
 		}
 		catch(Exception e)
 		{
@@ -36,8 +36,8 @@ public class BConfig extends SQLiteOpenHelper {
 		}
 	}
 	
-	public void migrate(SQLiteDatabase db) {
-		BMigration.Migrate(db);
+	public void migrate(SQLiteDatabase db, int currentVersion) {
+		BMigration.Migrate(db, currentVersion);
 	}
 	
 	public void dropDataBase() {

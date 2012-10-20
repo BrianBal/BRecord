@@ -5,6 +5,7 @@ import com.brecord.BRecord;
 
 public class BHasMany extends BAssociation {
 
+	@SuppressWarnings("rawtypes")
 	public BHasMany(BRecord p, Class aKlass) {
 		super(p, aKlass);
 	}

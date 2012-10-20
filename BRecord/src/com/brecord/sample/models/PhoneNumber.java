@@ -1,7 +1,6 @@
 package com.brecord.sample.models;
 
 import com.brecord.BRecord;
-import com.brecord.association.BHasMany;
 import com.brecord.association.BHasOne;
 
 public class PhoneNumber extends BRecord {

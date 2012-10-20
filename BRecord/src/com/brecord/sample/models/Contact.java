@@ -1,7 +1,5 @@
 package com.brecord.sample.models;
 
-import java.util.ArrayList;
-
 import com.brecord.BRecord;
 import com.brecord.association.BHasMany;
 

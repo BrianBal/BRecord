@@ -1,11 +1,9 @@
 package com.brecord.association;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import com.brecord.BQuery;
 import com.brecord.BRecord;
-import com.brecord.BSchema;
 
 public class  BAssociation {
 	
@@ -19,6 +17,7 @@ public class  BAssociation {
 	 * REQUIRED:
 	 * Specify the class name of the association.
 	 */
+	@SuppressWarnings("rawtypes")
 	public Class associatedKlass;
 	
 	
@@ -34,13 +33,13 @@ public class  BAssociation {
 	
 	
 	/**
-	 * Specify the foreign key used for the association. By default this is guessed to be the name of the association with an Ò_idÓ suffix. So a class that defines a belongs_to :person association will use Òperson_idÓ as the default :foreign_key. Similarly, belongs_to :favorite_person, :class_name => "Person" will use a foreign key of Òfavorite_person_idÓ.
+	 * Specify the foreign key used for the association. By default this is guessed to be the name of the association with an ï¿½_idï¿½ suffix. So a class that defines a belongs_to :person association will use ï¿½person_idï¿½ as the default :foreign_key. Similarly, belongs_to :favorite_person, :class_name => "Person" will use a foreign key of ï¿½favorite_person_idï¿½.
 	 */
 	public String foreignKey = null;
 	
 
 	/**
-	 * Specify the column used to store the associated objectÕs type, if this is a polymorphic association. By default this is guessed to be the name of the association with a Ò_typeÓ suffix. So a class that defines a belongs_to :taggable, :polymorphic => true association will use Òtaggable_typeÓ as the default :foreign_type.
+	 * Specify the column used to store the associated objectï¿½s type, if this is a polymorphic association. By default this is guessed to be the name of the association with a ï¿½_typeï¿½ suffix. So a class that defines a belongs_to :taggable, :polymorphic => true association will use ï¿½taggable_typeï¿½ as the default :foreign_type.
 	 */
 	public String foreignType = null;
 	
@@ -48,16 +47,18 @@ public class  BAssociation {
 	public int offset = -1;
 
 	/**
-	 * Specify this association is a polymorphic association by passing true. Note: If youÕve enabled the counter cache, then you may want to add the counter cache attribute to the attr_readonly list in the associated classes (e.g. class Post; attr_readonly :comments_count; end).
+	 * Specify this association is a polymorphic association by passing true. Note: If youï¿½ve enabled the counter cache, then you may want to add the counter cache attribute to the attr_readonly list in the associated classes (e.g. class Post; attr_readonly :comments_count; end).
 	 */
 	public Boolean polymorphic = false;
 	
+	@SuppressWarnings("rawtypes")
 	public BAssociation(BRecord p, Class aKlass) {
 		parent = p;
 		associatedKlass = aKlass;
 		foreignKey = getForeignKeyFromClass(p.getClass());
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public String getForeignKeyFromClass(Class klass) {
 		String key = "";
 		
@@ -79,6 +80,7 @@ public class  BAssociation {
 		return key;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public String getTableName(Class klass) {
 		String key = "";
 		

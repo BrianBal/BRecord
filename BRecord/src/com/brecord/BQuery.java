@@ -2,6 +2,7 @@ package com.brecord;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 
 import android.content.ContentValues;
@@ -13,12 +14,14 @@ import junit.framework.TestCase;
 
 public class BQuery extends TestCase {
 	
+	@SuppressWarnings("rawtypes")
 	private Class klass;
 	private ArrayList<String> conditions = new ArrayList<String>();
 	private ArrayList<String> orders = new ArrayList<String>();
 	private Integer limit = -1;
 	private Integer offset = -1;
 	
+	@SuppressWarnings("rawtypes")
 	public BQuery(Class type) {
 		klass = type;
 	}
@@ -42,7 +45,6 @@ public class BQuery extends TestCase {
 	/**
 	 * @return Null if no records where selected or the record object that was found
 	 */
-	@SuppressWarnings("unchecked")
 	public <T extends BRecord> T first() {
 		limit = 1;
 		offset = 0;
@@ -159,7 +161,8 @@ public class BQuery extends TestCase {
 	
 	public <T extends BRecord> ArrayList<T> executeSelectStatement() {
 		SQLiteDatabase db = BConfig.config.getReadableDatabase();
-		Cursor c = db.rawQuery(this.buildSelectStatement(), null);
+		String sql = this.buildSelectStatement();
+		Cursor c = db.rawQuery(sql, null);
 		
 		ArrayList<T> result = new ArrayList<T>();
 		if(c.moveToFirst()) {
@@ -200,9 +203,31 @@ public class BQuery extends TestCase {
 			String fs = field.getName();
 			String col = BSchema.schema.columnNameForField(getTableName(), fs);
 			String val;
+			String typeName = field.getType().getName();
+			String pkgName = field.getType().getPackage().getName() + ".";
+			typeName = typeName.replace(pkgName, "");
 			try {
 				val = field.get(valObj).toString();
-				if (! col.equalsIgnoreCase("id")) {
+				if (typeName.equalsIgnoreCase("Boolean"))
+				{
+					int bval = 0;
+					if (val != null)
+					{
+						bval = Boolean.parseBoolean(val) == true ? 1 : 0;
+					}
+					vals.put(col, bval);
+				}
+				else if (typeName.equalsIgnoreCase("Date"))
+				{
+					Date date = (Date)field.get(valObj);
+					if (date != null)
+					{
+						Double dval = date.getTime() / 1000.0;
+						vals.put(col, dval);
+					}
+				}
+				else if (! col.equalsIgnoreCase("id"))
+				{
 					vals.put(col, val);
 				}
 			} catch (IllegalArgumentException e) {
@@ -213,7 +238,8 @@ public class BQuery extends TestCase {
 		}
 		
 		SQLiteDatabase db = BConfig.config.getWritableDatabase();
-		int new_id = (int)db.insert(getTableName(), null, vals);
+		String tableName = getTableName();
+		int new_id = (int)db.insert(tableName, null, vals);
 		db.close();
 		
 		if (new_id > 0) {
@@ -234,9 +260,31 @@ public class BQuery extends TestCase {
 			String fs = field.getName();
 			String col = BSchema.schema.columnNameForField(getTableName(), fs);
 			String val;
+			String typeName = field.getType().getName();
+			String pkgName = field.getType().getPackage().getName() + ".";
+			typeName = typeName.replace(pkgName, "");
 			try {
 				val = field.get(valObj).toString();
-				if (! col.equalsIgnoreCase("id")) {
+				if (typeName.equalsIgnoreCase("Boolean"))
+				{
+					Boolean bval = false;
+					if (val != null)
+					{
+						bval = Boolean.parseBoolean(val);
+					}
+					vals.put(col, bval);
+				}
+				else if (typeName.equalsIgnoreCase("Date"))
+				{
+					Date date = (Date)field.get(valObj);
+					if (date != null)
+					{
+						Double dval = date.getTime() / 1000.0;
+						vals.put(col, dval);
+					}
+				}
+				else if (! col.equalsIgnoreCase("id"))
+				{
 					vals.put(col, val);
 				}
 			} catch (IllegalArgumentException e) {
