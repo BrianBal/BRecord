@@ -14,6 +14,11 @@ public class BRecord
 	{
 
 	}
+	
+	public BRecord clone()
+	{
+		return new BRecord();
+	}
 
 	public void setupAssociations()
 	{
@@ -25,7 +30,7 @@ public class BRecord
 	 */
 	public Boolean save()
 	{
-		if (id > 0)
+		if (id >= 0)
 		{
 			return update();
 		}
@@ -87,8 +92,16 @@ public class BRecord
 	 */
 	public Boolean destroy()
 	{
-		// TODO: implement this
-		return false;
+		BQuery query = new BQuery(this.getClass());
+
+		if (query.destroy(this))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -111,27 +124,22 @@ public class BRecord
 			}
 			else if (typeName.equalsIgnoreCase("Integer") || typeName.equalsIgnoreCase("int"))
 			{
-				String strVal = val + "";
-				int intVal = Integer.parseInt(strVal);
-				field.set(this, intVal);
+				field.set(this, (Integer)val);
 			}
 			else if (typeName.equalsIgnoreCase("Long") || typeName.equalsIgnoreCase("long"))
 			{
-				String strVal = val + "";
-				Long longVal = Long.parseLong(strVal);
-				field.set(this, longVal);
+				field.set(this, (Long)val);
 			}
 			else if (typeName.equalsIgnoreCase("Double") || typeName.equalsIgnoreCase("double"))
 			{
-				field.set(this, Double.parseDouble((String) val));
+				field.set(this, (Double) val);
 			}
 			else if (typeName.equalsIgnoreCase("Date"))
 			{
 				Date dateVal = new Date(0);
 				if (val != null)
 				{
-					double dval = Double.parseDouble((String) val);
-					dateVal = new Date((long) (dval * 1000.0));
+					dateVal = new Date((long) ((Double)val * 1000.0));
 				}
 				field.set(this, dateVal);
 			}

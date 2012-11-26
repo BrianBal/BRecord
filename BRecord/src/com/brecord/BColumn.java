@@ -38,6 +38,7 @@ public class BColumn
 	 * . The value is a blob of data, stored exactly as it was input.
 	 */
 	public static final int TYPE_BOOLEAN = 5;
+	public static final int TYPE_LONG = 6;
 
 	/**
 	 * The name of the column in the database
@@ -104,6 +105,7 @@ public class BColumn
 		{
 			case TYPE_BOOLEAN:
 			case TYPE_INTEGER:
+			case TYPE_LONG:
 				sql += "INTEGER ";
 				break;
 			case TYPE_DATETIME:

@@ -40,6 +40,16 @@ public class BConfig extends SQLiteOpenHelper {
 		BMigration.Migrate(db, currentVersion);
 	}
 	
+	@Override
+	synchronized public SQLiteDatabase getWritableDatabase()
+	{
+		if (BR.database == null || BR.database.isOpen() == false)
+		{
+			BR.database = super.getWritableDatabase();
+		}
+		return BR.database;
+	}
+	
 	public void dropDataBase() {
 		SQLiteDatabase db = getWritableDatabase();
 		

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import junit.framework.TestCase;
@@ -62,6 +63,31 @@ public class BQuery extends TestCase {
 	 */
 	public <T extends BRecord> ArrayList<T> all() {
 		return executeSelectStatement();
+	}
+	
+	/**
+	 * @param <T>
+	 * @return
+	 */
+	public <X extends BRecord> void allAsync(final BResultHandler<X> resultHandler) {
+		
+		AsyncTask<Integer, Void, Void> queryTask = new AsyncTask<Integer, Void, Void>()
+		{
+			private ArrayList<X> results;
+			
+			@Override
+			protected Void doInBackground(Integer ...integers) {
+				results = executeSelectStatement();
+				return null;
+		    }
+			
+			@Override
+			protected void onPostExecute(Void param)
+			{
+				resultHandler.onComplete(results);
+			}
+		};
+		queryTask.execute(1);
 	}
 	
 	/**
@@ -143,7 +169,6 @@ public class BQuery extends TestCase {
 				}
 			}
 		}
-		
 		return fields;
 	}
 	
@@ -156,40 +181,85 @@ public class BQuery extends TestCase {
 				columns.add(cols[i].name);
 			}
 		}
+		
 		return columns;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <T extends BRecord> ArrayList<T> executeSelectStatement() {
+		Long start = System.currentTimeMillis();
+		
+		ArrayList<T> result = new ArrayList<T>();
 		SQLiteDatabase db = BConfig.config.getReadableDatabase();
 		String sql = this.buildSelectStatement();
 		Cursor c = db.rawQuery(sql, null);
-		
-		ArrayList<T> result = new ArrayList<T>();
-		if(c.moveToFirst()) {
-			do {
-				try {
-					@SuppressWarnings("unchecked")
-					T row = (T) klass.newInstance(); 
+		try
+		{
+			if(c.moveToFirst()) {
+				do {
+					T row = (T) klass.newInstance();
+					row.id = c.getInt(c.getColumnIndex("id"));
+					
 					ArrayList<String> columnNames = this.getTableColumns();
 					Iterator<String> itr = columnNames.iterator();
+					String tName = getTableName();
 					while(itr.hasNext())
 					{
 						String col = itr.next();
-						String fieldName = BSchema.schema.fieldNameForColumn(getTableName(), col);
-						String val = c.getString(c.getColumnIndex(col));
-						row.setProperty(fieldName, val);
+						BColumn bcol = BSchema.schema.getColumnInTable(tName, col);
+						switch (bcol.type)
+						{
+							case BColumn.TYPE_BLOB:
+							case BColumn.TYPE_TEXT:
+								row.setProperty(bcol.fieldName, c.getString(c.getColumnIndex(col)));
+								break;
+							case BColumn.TYPE_BOOLEAN:
+								row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)) > 1);
+								break;
+							case BColumn.TYPE_REAL:
+							case BColumn.TYPE_DATETIME:
+								row.setProperty(bcol.fieldName, c.getDouble(c.getColumnIndex(col)));
+								break;
+							case BColumn.TYPE_INTEGER:
+								row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)));
+								break;
+							case BColumn.TYPE_LONG:
+								row.setProperty(bcol.fieldName, c.getLong(c.getColumnIndex(col)));
+								break;
+						}
+						
 					}
+					
 					result.add(row);
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				} catch (InstantiationException e) {
-					e.printStackTrace();
-				}
-			} while (c.moveToNext());
+				} while (c.moveToNext());
+			}
+		}
+		catch (IllegalArgumentException e)
+		{
+			e.printStackTrace();
+			return result;
+		}
+		catch (SecurityException e)
+		{
+			e.printStackTrace();
+			return result;
+		}
+		catch (InstantiationException e)
+		{
+			e.printStackTrace();
+			return result;
+		}
+		catch (IllegalAccessException e)
+		{
+			e.printStackTrace();
+			return result;
 		}
 		
-		db.close();
 		c.close();
+		// db.close();
+		
+		Long total = System.currentTimeMillis() - start;
+		Log.d("BQuery", "executeSelectStatement end: " + total + " ms");
 		return result;
 	}
 	
@@ -244,6 +314,20 @@ public class BQuery extends TestCase {
 		
 		if (new_id > 0) {
 			valObj.setProperty("id", new_id);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public <T extends BRecord> Boolean destroy(T valObj) {
+		
+		SQLiteDatabase db = BConfig.config.getWritableDatabase();
+		String tableName = getTableName();
+		int count = db.delete(tableName, "id = ?", new String[] { valObj.id.toString() });
+		db.close();
+		
+		if (count > 0) {
 			return true;
 		} else {
 			return false;

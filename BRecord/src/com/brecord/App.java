@@ -5,7 +5,6 @@ import android.content.Context;
 import android.util.Log;
 
 public class App extends Application {
-	private static String TAG = "App";
 	private static Application sApp;
 	public static String DATABASE_NAME = "brecord.db";
 	public static int DATABASE_VERSION = 1;
