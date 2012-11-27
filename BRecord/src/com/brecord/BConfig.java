@@ -41,7 +41,7 @@ public class BConfig extends SQLiteOpenHelper {
 	}
 	
 	@Override
-	synchronized public SQLiteDatabase getWritableDatabase()
+	public SQLiteDatabase getWritableDatabase()
 	{
 		if (BR.database == null || BR.database.isOpen() == false)
 		{

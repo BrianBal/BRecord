@@ -191,6 +191,14 @@ public class BQuery extends TestCase {
 		
 		ArrayList<T> result = new ArrayList<T>();
 		SQLiteDatabase db = BConfig.config.getReadableDatabase();
+		while(db.isDbLockedByCurrentThread() || db.isDbLockedByOtherThreads())
+		{
+			try {
+				Thread.sleep(100L);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		String sql = this.buildSelectStatement();
 		Cursor c = db.rawQuery(sql, null);
 		try
