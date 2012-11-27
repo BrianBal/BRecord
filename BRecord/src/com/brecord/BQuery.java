@@ -318,7 +318,7 @@ public class BQuery extends TestCase {
 		SQLiteDatabase db = BConfig.config.getWritableDatabase();
 		String tableName = getTableName();
 		int new_id = (int)db.insert(tableName, null, vals);
-		db.close();
+		BConfig.config.closeDatabase();
 		
 		if (new_id > 0) {
 			valObj.setProperty("id", new_id);
@@ -333,7 +333,7 @@ public class BQuery extends TestCase {
 		SQLiteDatabase db = BConfig.config.getWritableDatabase();
 		String tableName = getTableName();
 		int count = db.delete(tableName, "id = ?", new String[] { valObj.id.toString() });
-		db.close();
+		BConfig.config.closeDatabase();
 		
 		if (count > 0) {
 			return true;
@@ -390,7 +390,7 @@ public class BQuery extends TestCase {
 		String table = getTableName();
 		String id = valObj.id.toString();
 		int changed = db.update(table, vals, "id = '" + id + "'", null);
-		db.close();
+		BConfig.config.closeDatabase();
 		
 		if (changed > 0) {
 			return true;

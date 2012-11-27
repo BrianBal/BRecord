@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class BConfig extends SQLiteOpenHelper {
 	
 	public static BConfig config;
+	public static String DB_LOCK = "dblock";
 	
 	public BConfig(Context context, String name, CursorFactory factory, int version) {
 		super(context, name, factory, version);
@@ -43,11 +44,25 @@ public class BConfig extends SQLiteOpenHelper {
 	@Override
 	public SQLiteDatabase getWritableDatabase()
 	{
-		if (BR.database == null || BR.database.isOpen() == false)
+		synchronized(DB_LOCK)
 		{
-			BR.database = super.getWritableDatabase();
+			if (BR.database == null || BR.database.isOpen() == false)
+			{
+				BR.database = super.getWritableDatabase();
+			}
 		}
 		return BR.database;
+	}
+	
+	public void closeDatabase()
+	{
+		synchronized(DB_LOCK)
+		{
+			if (BR.database != null && BR.database.isOpen())
+			{
+				BR.database.close();
+			}
+		}
 	}
 	
 	public void dropDataBase() {

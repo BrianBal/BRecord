@@ -28,17 +28,14 @@ public class BR {
 		Log.d("BQuery", "deleted " + removed + " rows from " + query.getTableName());
 	}
 	
-	synchronized public static void open()
+	public static void open()
 	{
 		database = BConfig.config.getWritableDatabase();
 	}
 	
-	synchronized public static void close()
+	public static void close()
 	{
-		if (database != null)
-		{
-			database.close();
-		}
+		BConfig.config.closeDatabase();
 	}
 	
 }
