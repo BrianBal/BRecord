@@ -22,20 +22,26 @@ public class BR {
 	
 	@SuppressWarnings("rawtypes")
 	public static void deleteAll(Class klass) {
-		SQLiteDatabase db = BConfig.config.getWritableDatabase();
-		BQuery query = new BQuery(klass);
-		int removed = db.delete(query.getTableName(), null, null);
-		Log.d("BQuery", "deleted " + removed + " rows from " + query.getTableName());
+		synchronized(BDatabase.LOCK)
+		{
+			SQLiteDatabase db = BDatabase.getDatabase();
+			if (db != null)
+			{
+				BQuery query = new BQuery(klass);
+				int removed = db.delete(query.getTableName(), null, null);
+				Log.d("BQuery", "deleted " + removed + " rows from " + query.getTableName());
+			}
+		}
 	}
 	
 	public static void open()
 	{
-		database = BConfig.config.getWritableDatabase();
+		database = BDatabase.getDatabase();
 	}
 	
 	public static void close()
 	{
-		BConfig.config.closeDatabase();
+		BDatabase.closeDatabase();
 	}
 	
 }

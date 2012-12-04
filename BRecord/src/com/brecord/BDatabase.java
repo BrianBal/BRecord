@@ -4,14 +4,35 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public class BConfig extends SQLiteOpenHelper {
+public class BDatabase extends SQLiteOpenHelper {
 	
-	public static BConfig config;
-	public static String DB_LOCK = "dblock";
+	final public static String LOCK = "brecord_lock";
 	
-	public BConfig(Context context, String name, CursorFactory factory, int version) {
+	private static BDatabase sharedDatabase;
+	
+	public static void setup(Context context, String name, CursorFactory factory, int version)
+	{
+		sharedDatabase = new BDatabase(context, name, factory, version);
+	}
+	
+	public static SQLiteDatabase getDatabase()
+	{
+		SQLiteDatabase db = null;
+		try {
+			db = sharedDatabase.getWritableDatabase();
+		}
+		catch (SQLiteException e)
+		{
+			e.printStackTrace();
+		}
+		return db;
+	}
+	
+	public BDatabase(Context context, String name, CursorFactory factory, int version) 
+	{
 		super(context, name, factory, version);
 	}
 	
@@ -37,31 +58,25 @@ public class BConfig extends SQLiteOpenHelper {
 		}
 	}
 	
-	public void migrate(SQLiteDatabase db, int currentVersion) {
-		BMigration.Migrate(db, currentVersion);
-	}
-	
 	@Override
 	public SQLiteDatabase getWritableDatabase()
 	{
-		synchronized(DB_LOCK)
+		if (BR.database == null || BR.database.isOpen() == false)
 		{
-			if (BR.database == null || BR.database.isOpen() == false)
-			{
-				BR.database = super.getWritableDatabase();
-			}
+			BR.database = super.getWritableDatabase();
 		}
 		return BR.database;
 	}
 	
-	public void closeDatabase()
+	public void migrate(SQLiteDatabase db, int currentVersion) {
+		BMigration.Migrate(db, currentVersion);
+	}
+	
+	public static void closeDatabase()
 	{
-		synchronized(DB_LOCK)
+		if (BR.database != null && BR.database.isOpen())
 		{
-			if (BR.database != null && BR.database.isOpen())
-			{
-				BR.database.close();
-			}
+			BR.database.close();
 		}
 	}
 	

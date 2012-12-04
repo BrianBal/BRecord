@@ -29,7 +29,7 @@ public class App extends Application {
 				new BColumn("number", BColumn.TYPE_TEXT, "555-555-5555", false)
 		});
 		
-		BConfig.config = new BConfig(sApp, DATABASE_NAME, null, DATABASE_VERSION);
+		BDatabase.setup(sApp, DATABASE_NAME, null, DATABASE_VERSION);
 	}
 	
 	@Override
