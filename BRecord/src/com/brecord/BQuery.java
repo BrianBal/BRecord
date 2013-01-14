@@ -161,10 +161,10 @@ public class BQuery extends TestCase {
 					
 					fields.add(klass.getField(cols[i].fieldName));
 				} catch (SecurityException e) {
-					Log.w("BRecord", "security exception for column '"+cols[i].name+"' for table '"+getTableName()+"'");
+					// Log.w("BRecord", "security exception for column '"+cols[i].name+"' for table '"+getTableName()+"'");
 					e.printStackTrace();
 				} catch (NoSuchFieldException e) {
-					Log.w("BRecord", "unknow field '"+cols[i].name+"' for table '"+getTableName()+"'");
+					// Log.w("BRecord", "unknow field '"+cols[i].name+"' for table '"+getTableName()+"'");
 					e.printStackTrace();
 				}
 			}
@@ -190,83 +190,86 @@ public class BQuery extends TestCase {
 		Long start = System.currentTimeMillis();
 		ArrayList<T> result = new ArrayList<T>();
 		
-		synchronized(BDatabase.LOCK)
+		SQLiteDatabase db = BDatabase.getReadDatabase();
+		// SQLiteDatabase db = BDatabase.getDatabase();
+		// Log.d("BRecord", "select " + getTableName());
+		if (db != null)
 		{
-			SQLiteDatabase db = BDatabase.getDatabase();
-			if (db != null)
+			String sql = this.buildSelectStatement();
+			Cursor c = db.rawQuery(sql, null);
+			try
 			{
-				String sql = this.buildSelectStatement();
-				Cursor c = db.rawQuery(sql, null);
-				try
-				{
-					if(c.moveToFirst()) {
-						do {
-							T row = (T) klass.newInstance();
-							row.id = c.getInt(c.getColumnIndex("id"));
-							
-							ArrayList<String> columnNames = this.getTableColumns();
-							Iterator<String> itr = columnNames.iterator();
-							String tName = getTableName();
-							while(itr.hasNext())
+				if(c.moveToFirst()) {
+					do {
+						T row = (T) klass.newInstance();
+						row.id = c.getInt(c.getColumnIndex("id"));
+						
+						ArrayList<String> columnNames = this.getTableColumns();
+						Iterator<String> itr = columnNames.iterator();
+						String tName = getTableName();
+						while(itr.hasNext())
+						{
+							String col = itr.next();
+							BColumn bcol = BSchema.schema.getColumnInTable(tName, col);
+							switch (bcol.type)
 							{
-								String col = itr.next();
-								BColumn bcol = BSchema.schema.getColumnInTable(tName, col);
-								switch (bcol.type)
-								{
-									case BColumn.TYPE_BLOB:
-									case BColumn.TYPE_TEXT:
-										row.setProperty(bcol.fieldName, c.getString(c.getColumnIndex(col)));
-										break;
-									case BColumn.TYPE_BOOLEAN:
-										row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)) > 1);
-										break;
-									case BColumn.TYPE_REAL:
-									case BColumn.TYPE_DATETIME:
-										row.setProperty(bcol.fieldName, c.getDouble(c.getColumnIndex(col)));
-										break;
-									case BColumn.TYPE_INTEGER:
-										row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)));
-										break;
-									case BColumn.TYPE_LONG:
-										row.setProperty(bcol.fieldName, c.getLong(c.getColumnIndex(col)));
-										break;
-								}
-								
+								case BColumn.TYPE_BLOB:
+								case BColumn.TYPE_TEXT:
+									row.setProperty(bcol.fieldName, c.getString(c.getColumnIndex(col)));
+									break;
+								case BColumn.TYPE_BOOLEAN:
+									row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)) > 1);
+									break;
+								case BColumn.TYPE_REAL:
+								case BColumn.TYPE_DATETIME:
+									row.setProperty(bcol.fieldName, c.getDouble(c.getColumnIndex(col)));
+									break;
+								case BColumn.TYPE_INTEGER:
+									row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)));
+									break;
+								case BColumn.TYPE_LONG:
+									row.setProperty(bcol.fieldName, c.getLong(c.getColumnIndex(col)));
+									break;
 							}
 							
-							result.add(row);
-						} while (c.moveToNext());
-					}
+						}
+						
+						result.add(row);
+					} while (c.moveToNext());
 				}
-				catch (IllegalArgumentException e)
-				{
-					e.printStackTrace();
-					return result;
-				}
-				catch (SecurityException e)
-				{
-					e.printStackTrace();
-					return result;
-				}
-				catch (InstantiationException e)
-				{
-					e.printStackTrace();
-					return result;
-				}
-				catch (IllegalAccessException e)
-				{
-					e.printStackTrace();
-					return result;
-				}
-				
-				c.close();
-				BDatabase.closeDatabase();
+			}
+			catch (IllegalArgumentException e)
+			{
+				e.printStackTrace();
+				return result;
+			}
+			catch (SecurityException e)
+			{
+				e.printStackTrace();
+				return result;
+			}
+			catch (InstantiationException e)
+			{
+				e.printStackTrace();
+				return result;
+			}
+			catch (IllegalAccessException e)
+			{
+				e.printStackTrace();
+				return result;
 			}
 			
+			c.close();
+			// BDatabase.closeDatabase();
+			BDatabase.closeReadDatabase();
 		}
-		
-		Long total = System.currentTimeMillis() - start;
-		Log.d("BQuery", "executeSelectStatement end: " + total + " ms");
+		else
+		{
+			Log.d("Test", "select failed db is null");
+		}
+			
+		// Long total = System.currentTimeMillis() - start;
+		// Log.d("BQuery", "executeSelectStatement end: " + total + " ms");
 		
 		return result;
 	}
@@ -274,65 +277,67 @@ public class BQuery extends TestCase {
 	public <T extends BRecord> Boolean insert(T valObj)
 	{
 		Boolean result = false;
-		synchronized(BDatabase.LOCK)
+		ArrayList<Field> cols = getFieldsForTableColumns();
+		ContentValues vals = new ContentValues();
+		
+		Iterator<Field> itr = cols.iterator();
+		while(itr.hasNext()) {
+			Field field = itr.next();
+			String fs = field.getName();
+			String col = BSchema.schema.columnNameForField(getTableName(), fs);
+			String val;
+			String typeName = field.getType().getName();
+			String pkgName = field.getType().getPackage().getName() + ".";
+			typeName = typeName.replace(pkgName, "");
+			try {
+				val = field.get(valObj).toString();
+				if (typeName.equalsIgnoreCase("Boolean"))
+				{
+					int bval = 0;
+					if (val != null)
+					{
+						bval = Boolean.parseBoolean(val) == true ? 1 : 0;
+					}
+					vals.put(col, bval);
+				}
+				else if (typeName.equalsIgnoreCase("Date"))
+				{
+					Date date = (Date)field.get(valObj);
+					if (date != null)
+					{
+						Double dval = date.getTime() / 1000.0;
+						vals.put(col, dval);
+					}
+				}
+				else if (! col.equalsIgnoreCase("id"))
+				{
+					vals.put(col, val);
+				}
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		SQLiteDatabase db = BDatabase.getDatabase();
+		// Log.d("BRecord", "insert " + getTableName());
+		if (db != null)
 		{
-			ArrayList<Field> cols = getFieldsForTableColumns();
-			ContentValues vals = new ContentValues();
-			
-			Iterator<Field> itr = cols.iterator();
-			while(itr.hasNext()) {
-				Field field = itr.next();
-				String fs = field.getName();
-				String col = BSchema.schema.columnNameForField(getTableName(), fs);
-				String val;
-				String typeName = field.getType().getName();
-				String pkgName = field.getType().getPackage().getName() + ".";
-				typeName = typeName.replace(pkgName, "");
-				try {
-					val = field.get(valObj).toString();
-					if (typeName.equalsIgnoreCase("Boolean"))
-					{
-						int bval = 0;
-						if (val != null)
-						{
-							bval = Boolean.parseBoolean(val) == true ? 1 : 0;
-						}
-						vals.put(col, bval);
-					}
-					else if (typeName.equalsIgnoreCase("Date"))
-					{
-						Date date = (Date)field.get(valObj);
-						if (date != null)
-						{
-							Double dval = date.getTime() / 1000.0;
-							vals.put(col, dval);
-						}
-					}
-					else if (! col.equalsIgnoreCase("id"))
-					{
-						vals.put(col, val);
-					}
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				}
+			String tableName = getTableName();
+			int new_id = (int)db.insert(tableName, null, vals);
+			BDatabase.closeDatabase();
+		
+			if (new_id > 0) {
+				valObj.setProperty("id", new_id);
+				result =  true;
+			} else {
+				result =  false;
 			}
-			
-			SQLiteDatabase db = BDatabase.getDatabase();
-			if (db != null)
-			{
-				String tableName = getTableName();
-				int new_id = (int)db.insert(tableName, null, vals);
-				BDatabase.closeDatabase();
-			
-				if (new_id > 0) {
-					valObj.setProperty("id", new_id);
-					result =  true;
-				} else {
-					result =  false;
-				}
-			}
+		}
+		else
+		{
+			// Log.d("BRecord", "Database is null insert failed");
 		}
 		
 		return result;
@@ -341,87 +346,94 @@ public class BQuery extends TestCase {
 	public <T extends BRecord> Boolean destroy(T valObj)
 	{
 		Boolean result = false;
-		synchronized(BDatabase.LOCK)
+		SQLiteDatabase db = BDatabase.getDatabase();
+		// Log.d("BRecord", "destroy " + getTableName());
+		if (db != null)
 		{
-			SQLiteDatabase db = BDatabase.getDatabase();
-			if (db != null)
-			{
-				String tableName = getTableName();
-				int count = db.delete(tableName, "id = ?", new String[] { valObj.id.toString() });
-				BDatabase.closeDatabase();
-			
-				if (count > 0) {
-					result = true;
-				} else {
-					result = false;
-				}
+			String tableName = getTableName();
+			int count = db.delete(tableName, "id = ?", new String[] { valObj.id.toString() });
+			BDatabase.closeDatabase();
+		
+			if (count > 0) {
+				result = true;
+			} else {
+				result = false;
 			}
 		}
+		else
+		{
+			// Log.d("BRecord", "Database is null destroy failed");
+		}
+			
 		return result;
 	}
 
 	public <T extends BRecord> Boolean update(T valObj) {
 		Boolean result = false;
-		synchronized(BDatabase.LOCK)
-		{
-			ArrayList<Field> cols = getFieldsForTableColumns();
-			ContentValues vals = new ContentValues();
-			
-			Iterator<Field> itr = cols.iterator();
-			while(itr.hasNext()) {
-				Field field = itr.next();
-				String fs = field.getName();
-				String col = BSchema.schema.columnNameForField(getTableName(), fs);
-				String val;
-				String typeName = field.getType().getName();
-				String pkgName = field.getType().getPackage().getName() + ".";
-				typeName = typeName.replace(pkgName, "");
-				try {
-					val = field.get(valObj).toString();
-					if (typeName.equalsIgnoreCase("Boolean"))
+		ArrayList<Field> cols = getFieldsForTableColumns();
+		ContentValues vals = new ContentValues();
+		
+		Iterator<Field> itr = cols.iterator();
+		while(itr.hasNext()) {
+			Field field = itr.next();
+			String fs = field.getName();
+			String col = BSchema.schema.columnNameForField(getTableName(), fs);
+			String val;
+			String typeName = field.getType().getName();
+			String pkgName = field.getType().getPackage().getName() + ".";
+			typeName = typeName.replace(pkgName, "");
+			try {
+				val = field.get(valObj).toString();
+				if (typeName.equalsIgnoreCase("Boolean"))
+				{
+					Boolean bval = false;
+					if (val != null)
 					{
-						Boolean bval = false;
-						if (val != null)
-						{
-							bval = Boolean.parseBoolean(val);
-						}
-						vals.put(col, bval);
+						bval = Boolean.parseBoolean(val);
 					}
-					else if (typeName.equalsIgnoreCase("Date"))
-					{
-						Date date = (Date)field.get(valObj);
-						if (date != null)
-						{
-							Double dval = date.getTime() / 1000.0;
-							vals.put(col, dval);
-						}
-					}
-					else if (! col.equalsIgnoreCase("id"))
-					{
-						vals.put(col, val);
-					}
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
+					vals.put(col, bval);
 				}
-			}
-			
-			SQLiteDatabase db = BDatabase.getDatabase();
-			if (db != null)
-			{
-				String table = getTableName();
-				String id = valObj.id.toString();
-				int changed = db.update(table, vals, "id = '" + id + "'", null);
-				BDatabase.closeDatabase();
-				
-				if (changed > 0) {
-					result =  true;
-				} else {
-					result = false;
+				else if (typeName.equalsIgnoreCase("Date"))
+				{
+					Date date = (Date)field.get(valObj);
+					if (date != null)
+					{
+						Double dval = date.getTime() / 1000.0;
+						vals.put(col, dval);
+					}
 				}
+				else if (! col.equalsIgnoreCase("id"))
+				{
+					vals.put(col, val);
+				}
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
 			}
 		}
+		
+		
+		SQLiteDatabase db = BDatabase.getDatabase();
+		// Log.d("BRecord", "update " + getTableName());
+		if (db != null)
+		{
+			String table = getTableName();
+			String id = valObj.id.toString();
+			int changed = db.update(table, vals, "id = '" + id + "'", null);
+			BDatabase.closeDatabase();
+			
+			if (changed > 0) {
+				result =  true;
+			} else {
+				result = false;
+			}
+		}
+		else
+		{
+			// Log.d("BRecord", "Database is null update failed");
+		}
+		
 		return result;
 	}
 	

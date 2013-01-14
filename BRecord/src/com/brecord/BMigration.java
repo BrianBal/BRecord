@@ -2,7 +2,9 @@ package com.brecord;
 
 import java.util.Iterator;
 
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 public class BMigration
 {
@@ -12,18 +14,24 @@ public class BMigration
 
 	public static Boolean Migrate(SQLiteDatabase db, int currentVersion)
 	{
-
-		Iterator<BMigration> itr = BSchema.schema.tables.iterator();
+		Iterator<String> itr = BSchema.sql.iterator();
+		int version = 0;
 		while (itr.hasNext())
 		{
-			BMigration mig = itr.next();
-			if (mig.version > currentVersion)
+			String sql = itr.next();
+			if (version >= currentVersion || currentVersion == 0)
 			{
-				String sql = mig.dropSQL();
-				db.execSQL(sql);
-				sql = mig.createSQL();
-				db.execSQL(sql);
+				try
+				{
+					Log.d("BRecord", sql);
+					db.execSQL(sql);
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
 			}
+			version ++;
 		}
 
 		return true;
@@ -33,7 +41,12 @@ public class BMigration
 	{
 		new BMigration(tableName, tableColumns);
 	}
-
+	
+	public static void add(String sql)
+	{
+		BSchema.sql.add(sql);
+	}
+	
 	public BMigration(String tableName, BColumn[] tableColumns)
 	{
 		table = tableName;
@@ -48,9 +61,10 @@ public class BMigration
 		}
 		version = BSchema.schema.tables.size() + 1;
 		
+		BSchema.sql.add(createSQL());
 		BSchema.schema.tables.add(this);
 	}
-
+	
 	public String dropSQL()
 	{
 		String sql = "DROP TABLE IF EXISTS " + table;

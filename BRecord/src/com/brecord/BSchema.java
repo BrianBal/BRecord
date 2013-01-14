@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 public class BSchema {
 	public static BSchema schema = new BSchema();
+	public static ArrayList<String> sql = new ArrayList<String>();
 	
 	public ArrayList<BMigration> tables = new ArrayList<BMigration>();
 	private BMigration lastTableMigration = null;

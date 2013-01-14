@@ -52,16 +52,14 @@ public class BRecord
 		updatedAt = new Date();
 		BQuery query = new BQuery(this.getClass());
 
-		if (query.insert(this))
+		Boolean result = query.insert(this);
+		if (result)
 		{
 			afterSave();
 			afterCreate();
-			return true;
 		}
-		else
-		{
-			return false;
-		}
+		
+		return result;
 	}
 
 	/**
@@ -75,16 +73,14 @@ public class BRecord
 		updatedAt = new Date();
 		BQuery query = new BQuery(this.getClass());
 
-		if (query.update(this))
+		Boolean result = query.update(this);
+		if (result)
 		{
 			afterSave();
 			afterUpdate();
-			return true;
 		}
-		else
-		{
-			return false;
-		}
+		
+		return result;
 	}
 
 	/**

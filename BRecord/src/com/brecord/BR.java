@@ -1,7 +1,6 @@
 package com.brecord;
 
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 public class BR {
 	
@@ -29,19 +28,9 @@ public class BR {
 			{
 				BQuery query = new BQuery(klass);
 				int removed = db.delete(query.getTableName(), null, null);
-				Log.d("BQuery", "deleted " + removed + " rows from " + query.getTableName());
+				// Log.d("BQuery", "deleted " + removed + " rows from " + query.getTableName());
 			}
+			BDatabase.closeDatabase();
 		}
 	}
-	
-	public static void open()
-	{
-		database = BDatabase.getDatabase();
-	}
-	
-	public static void close()
-	{
-		BDatabase.closeDatabase();
-	}
-	
 }
