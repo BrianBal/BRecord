@@ -8,6 +8,8 @@ import java.util.Iterator;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -113,6 +115,10 @@ public class BQuery extends TestCase {
 	 * @return
 	 */
 	public BQuery limit(int limitTo) {
+		if (offset < 0)
+		{
+			offset = 0;
+		}
 		limit = limitTo;
 		return this;
 	}
@@ -122,6 +128,10 @@ public class BQuery extends TestCase {
 	 * @return
 	 */
 	public BQuery offset(int offsetTo) {
+		if (limit < 0)
+		{
+			limit = 0;
+		}
 		offset = offsetTo;
 		return this;
 	}
@@ -186,90 +196,75 @@ public class BQuery extends TestCase {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends BRecord> ArrayList<T> executeSelectStatement() {
-		Long start = System.currentTimeMillis();
+	public <T extends BRecord> ArrayList<T> executeSelectStatement()
+	{
 		ArrayList<T> result = new ArrayList<T>();
 		
-		SQLiteDatabase db = BDatabase.getReadDatabase();
-		// SQLiteDatabase db = BDatabase.getDatabase();
-		// Log.d("BRecord", "select " + getTableName());
-		if (db != null)
+		Uri uri = Uri.parse("content://" + BConfig.AUTHORITY + "/" + this.getTableName());
+		Cursor c = BConfig.CONTEXT.getContentResolver().query(uri, null, this.buildWhereClause(), null, this.buildOrderClause());
+		try
 		{
-			String sql = this.buildSelectStatement();
-			Cursor c = db.rawQuery(sql, null);
-			try
-			{
-				if(c.moveToFirst()) {
-					do {
-						T row = (T) klass.newInstance();
-						row.id = c.getInt(c.getColumnIndex("id"));
-						
-						ArrayList<String> columnNames = this.getTableColumns();
-						Iterator<String> itr = columnNames.iterator();
-						String tName = getTableName();
-						while(itr.hasNext())
+			if(c.moveToFirst()) {
+				do {
+					T row = (T) klass.newInstance();
+					row.id = c.getInt(c.getColumnIndex("id"));
+					
+					ArrayList<String> columnNames = this.getTableColumns();
+					Iterator<String> itr = columnNames.iterator();
+					String tName = getTableName();
+					while(itr.hasNext())
+					{
+						String col = itr.next();
+						BColumn bcol = BSchema.schema.getColumnInTable(tName, col);
+						switch (bcol.type)
 						{
-							String col = itr.next();
-							BColumn bcol = BSchema.schema.getColumnInTable(tName, col);
-							switch (bcol.type)
-							{
-								case BColumn.TYPE_BLOB:
-								case BColumn.TYPE_TEXT:
-									row.setProperty(bcol.fieldName, c.getString(c.getColumnIndex(col)));
-									break;
-								case BColumn.TYPE_BOOLEAN:
-									row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)) > 1);
-									break;
-								case BColumn.TYPE_REAL:
-								case BColumn.TYPE_DATETIME:
-									row.setProperty(bcol.fieldName, c.getDouble(c.getColumnIndex(col)));
-									break;
-								case BColumn.TYPE_INTEGER:
-									row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)));
-									break;
-								case BColumn.TYPE_LONG:
-									row.setProperty(bcol.fieldName, c.getLong(c.getColumnIndex(col)));
-									break;
-							}
-							
+							case BColumn.TYPE_BLOB:
+							case BColumn.TYPE_TEXT:
+								row.setProperty(bcol.fieldName, c.getString(c.getColumnIndex(col)));
+								break;
+							case BColumn.TYPE_BOOLEAN:
+								row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)) > 1);
+								break;
+							case BColumn.TYPE_REAL:
+							case BColumn.TYPE_DATETIME:
+								row.setProperty(bcol.fieldName, c.getDouble(c.getColumnIndex(col)));
+								break;
+							case BColumn.TYPE_INTEGER:
+								row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)));
+								break;
+							case BColumn.TYPE_LONG:
+								row.setProperty(bcol.fieldName, c.getLong(c.getColumnIndex(col)));
+								break;
 						}
 						
-						result.add(row);
-					} while (c.moveToNext());
-				}
+					}
+					
+					result.add(row);
+				} while (c.moveToNext());
 			}
-			catch (IllegalArgumentException e)
-			{
-				e.printStackTrace();
-				return result;
-			}
-			catch (SecurityException e)
-			{
-				e.printStackTrace();
-				return result;
-			}
-			catch (InstantiationException e)
-			{
-				e.printStackTrace();
-				return result;
-			}
-			catch (IllegalAccessException e)
-			{
-				e.printStackTrace();
-				return result;
-			}
-			
-			c.close();
-			// BDatabase.closeDatabase();
-			BDatabase.closeReadDatabase();
 		}
-		else
+		catch (IllegalArgumentException e)
 		{
-			Log.d("Test", "select failed db is null");
+			e.printStackTrace();
+			return result;
 		}
-			
-		// Long total = System.currentTimeMillis() - start;
-		// Log.d("BQuery", "executeSelectStatement end: " + total + " ms");
+		catch (SecurityException e)
+		{
+			e.printStackTrace();
+			return result;
+		}
+		catch (InstantiationException e)
+		{
+			e.printStackTrace();
+			return result;
+		}
+		catch (IllegalAccessException e)
+		{
+			e.printStackTrace();
+			return result;
+		}
+		
+		c.close();
 		
 		return result;
 	}
@@ -290,10 +285,10 @@ public class BQuery extends TestCase {
 			String pkgName = field.getType().getPackage().getName() + ".";
 			typeName = typeName.replace(pkgName, "");
 			try {
-				val = field.get(valObj).toString();
 				if (typeName.equalsIgnoreCase("Boolean"))
 				{
 					int bval = 0;
+					val = field.get(valObj).toString();
 					if (val != null)
 					{
 						bval = Boolean.parseBoolean(val) == true ? 1 : 0;
@@ -309,8 +304,13 @@ public class BQuery extends TestCase {
 						vals.put(col, dval);
 					}
 				}
+				else if (typeName.equalsIgnoreCase("Long"))
+				{
+					vals.put(col, field.getLong(valObj));
+				}
 				else if (! col.equalsIgnoreCase("id"))
 				{
+					val = field.get(valObj).toString();
 					vals.put(col, val);
 				}
 			} catch (IllegalArgumentException e) {
@@ -320,24 +320,13 @@ public class BQuery extends TestCase {
 			}
 		}
 		
-		SQLiteDatabase db = BDatabase.getDatabase();
-		// Log.d("BRecord", "insert " + getTableName());
-		if (db != null)
-		{
-			String tableName = getTableName();
-			int new_id = (int)db.insert(tableName, null, vals);
-			BDatabase.closeDatabase();
+		Uri uri = BConfig.CONTEXT.getContentResolver().insert(Uri.parse("content://" + BConfig.AUTHORITY + "/" + this.getTableName()), vals);
 		
-			if (new_id > 0) {
-				valObj.setProperty("id", new_id);
-				result =  true;
-			} else {
-				result =  false;
-			}
-		}
-		else
+		if (uri != null)
 		{
-			// Log.d("BRecord", "Database is null insert failed");
+			result = true;
+			int newId = Integer.parseInt(uri.getLastPathSegment());
+			valObj.setProperty("id", newId);
 		}
 		
 		return result;
@@ -346,25 +335,17 @@ public class BQuery extends TestCase {
 	public <T extends BRecord> Boolean destroy(T valObj)
 	{
 		Boolean result = false;
-		SQLiteDatabase db = BDatabase.getDatabase();
-		// Log.d("BRecord", "destroy " + getTableName());
-		if (db != null)
-		{
-			String tableName = getTableName();
-			int count = db.delete(tableName, "id = ?", new String[] { valObj.id.toString() });
-			BDatabase.closeDatabase();
 		
-			if (count > 0) {
-				result = true;
-			} else {
-				result = false;
-			}
+		int deleted = BConfig.CONTEXT.getContentResolver().delete(Uri.parse("content://" + BConfig.AUTHORITY + "/" + getTableName()), "id = ?", new String[] { valObj.id.toString() });		
+		if (deleted > 0)
+		{
+			result = true;
 		}
 		else
 		{
-			// Log.d("BRecord", "Database is null destroy failed");
+			result = false;
 		}
-			
+		
 		return result;
 	}
 
@@ -413,25 +394,15 @@ public class BQuery extends TestCase {
 			}
 		}
 		
-		
-		SQLiteDatabase db = BDatabase.getDatabase();
-		// Log.d("BRecord", "update " + getTableName());
-		if (db != null)
+		String id = valObj.id.toString();
+		int changed = BConfig.CONTEXT.getContentResolver().update(Uri.parse("content://" + BConfig.AUTHORITY + "/" + getTableName()), vals, "id = '" + id + "'", null);
+		if (changed > 0)
 		{
-			String table = getTableName();
-			String id = valObj.id.toString();
-			int changed = db.update(table, vals, "id = '" + id + "'", null);
-			BDatabase.closeDatabase();
-			
-			if (changed > 0) {
-				result =  true;
-			} else {
-				result = false;
-			}
+			result =  true;
 		}
 		else
 		{
-			// Log.d("BRecord", "Database is null update failed");
+			result = false;
 		}
 		
 		return result;
@@ -470,6 +441,42 @@ public class BQuery extends TestCase {
 		
 		if (offset >= 0) {
 			sql += "OFFSET " + offset.toString() + " ";
+		}
+		
+		return sql;
+	}
+	
+	public String buildWhereClause()
+	{
+		String sql = "(1=1) ";
+		
+		// add where conditions
+		Iterator<String> citr = conditions.iterator();
+		while(citr.hasNext()) {
+			String cond = citr.next();
+			sql += "AND (" + cond + ") ";
+		}
+		
+		return sql;
+	}
+	
+	public String buildOrderClause()
+	{
+		String sql = "";
+		
+		// add where conditions
+		Iterator<String> oitr = orders.iterator();
+		if (oitr.hasNext())
+		{
+			sql += "";
+			String pre = "";
+			while(oitr.hasNext())
+			{
+				String order = oitr.next();
+				sql += pre + order;
+				pre = ", ";
+			}
+			sql += " ";
 		}
 		
 		return sql;

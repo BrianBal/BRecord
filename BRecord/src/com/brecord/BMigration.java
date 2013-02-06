@@ -14,11 +14,16 @@ public class BMigration
 
 	public static Boolean Migrate(SQLiteDatabase db, int currentVersion)
 	{
+		Long start = System.currentTimeMillis();
+		
 		Iterator<String> itr = BSchema.sql.iterator();
 		int version = 0;
 		while (itr.hasNext())
 		{
+			Long subStart = System.currentTimeMillis();
+			
 			String sql = itr.next();
+			
 			if (version >= currentVersion || currentVersion == 0)
 			{
 				try
@@ -32,8 +37,13 @@ public class BMigration
 				}
 			}
 			version ++;
+			
+			Long subTotal = System.currentTimeMillis() - subStart;
+			Log.d("BDatabase", "BMigration.migrate query took " + subTotal.toString() + " miliseconds");
 		}
 
+		Long total = System.currentTimeMillis() - start;
+		Log.d("BDatabase", "BMigration.migrate took " + total.toString() + " miliseconds");
 		return true;
 	}
 	
