@@ -1,7 +1,9 @@
 package com.brecord;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -30,14 +32,18 @@ public class BR
 	@SuppressWarnings("rawtypes")
 	public static <T extends BRecord> void batchInsert(Class klass, ArrayList<T> records)
 	{
-		BQuery query = new BQuery(klass);
-		for (T record : records)
+		if (records.size() > 0)
 		{
-			Boolean result = query.insert(record);
-			if (result == false)
+			ContentValues[] values = new ContentValues[records.size()];
+			Iterator<T> itr = records.iterator();
+			int i = 0;
+			while (itr.hasNext())
 			{
-				Log.d("BDatabase", "Batch insert failed");
+				T record = itr.next();
+				values[i] = record.getContentValues();
+				i ++;
 			}
+			BConfig.CONTEXT.getContentResolver().bulkInsert(Uri.parse("content://" + BConfig.AUTHORITY + "/" + records.get(0).getTableName()), values);
 		}
 	}
 

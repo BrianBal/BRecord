@@ -1,5 +1,8 @@
 package com.brecord;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -34,6 +37,26 @@ public class BContentProvider extends ContentProvider
 			insertedUri = Uri.parse("context://" + BConfig.AUTHORITY + "/" + tableName + "/" + id.toString());
 		}
 		return insertedUri;
+	}
+	
+	@Override
+	public int bulkInsert(Uri uri, ContentValues[] values)
+	{
+		String tableName = uri.getLastPathSegment();
+		SQLiteDatabase db = BDatabase.getDatabase();
+		db.beginTransaction();
+		
+		for (int i = 0; i < values.length; i++)
+		{
+			db.insert(tableName, null, values[i]);
+		}
+		
+		db.setTransactionSuccessful();
+		db.endTransaction();
+		
+		getContext().getContentResolver().notifyChange(uri, null);
+		
+		return values.length;
 	}
 
 	@Override

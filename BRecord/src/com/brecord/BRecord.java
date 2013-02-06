@@ -1,7 +1,11 @@
 package com.brecord;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+
+import android.content.ContentValues;
 
 public class BRecord
 {
@@ -181,6 +185,103 @@ public class BRecord
 	protected void hasAndBelongsToMany(Class klass)
 	{
 		// TODO: implement this
+	}
+	
+	/* Misc */
+	
+	public String getTableName()
+	{
+		String key = "";
+		
+		String name = getClass().getName();
+		String pkg = getClass().getPackage().getName() + ".";
+		name = name.replace(pkg, "");
+		String[] parts = name.split("");
+		String pre = "";
+		for(int i = 0; i < parts.length; i++) {
+			if(parts[i].matches("[A-Z]")) {
+				key += pre + parts[i].toLowerCase();
+				pre = "_";
+			} else {
+				key += parts[i].toLowerCase();
+			}
+		}
+		key += "s";
+		
+		return key;
+	}
+	
+	public ArrayList<Field> getFieldsForTableColumns()
+	{
+		String tableName = getTableName();
+		BColumn[] cols = BSchema.schema.columnsForTable(tableName);
+		ArrayList<Field> fields = new ArrayList<Field>();
+		
+		if (cols != null) {
+			for(int i = 0; i < cols.length; i++) {
+				try {
+					fields.add(getClass().getField(cols[i].fieldName));
+				} catch (SecurityException e) {
+					e.printStackTrace();
+				} catch (NoSuchFieldException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return fields;
+	}
+	
+	public ContentValues getContentValues()
+	{
+		ArrayList<Field> cols = getFieldsForTableColumns();
+		ContentValues vals = new ContentValues();
+		
+		Iterator<Field> itr = cols.iterator();
+		while(itr.hasNext()) {
+			Field field = itr.next();
+			String fs = field.getName();
+			String col = BSchema.schema.columnNameForField(getTableName(), fs);
+			String val;
+			String typeName = field.getType().getName();
+			String pkgName = field.getType().getPackage().getName() + ".";
+			typeName = typeName.replace(pkgName, "");
+			try {
+				if (typeName.equalsIgnoreCase("Boolean"))
+				{
+					int bval = 0;
+					val = field.get(this).toString();
+					if (val != null)
+					{
+						bval = Boolean.parseBoolean(val) == true ? 1 : 0;
+					}
+					vals.put(col, bval);
+				}
+				else if (typeName.equalsIgnoreCase("Date"))
+				{
+					Date date = (Date)field.get(this);
+					if (date != null)
+					{
+						Double dval = date.getTime() / 1000.0;
+						vals.put(col, dval);
+					}
+				}
+				else if (typeName.equalsIgnoreCase("Long"))
+				{
+					vals.put(col, field.getLong(this));
+				}
+				else if (! col.equalsIgnoreCase("id"))
+				{
+					val = field.get(this).toString();
+					vals.put(col, val);
+				}
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return vals;
 	}
 
 	/* Callbacks */
