@@ -269,7 +269,7 @@ public class BRecord
 				{
 					vals.put(col, field.getLong(this));
 				}
-				else if (! col.equalsIgnoreCase("id"))
+				else if (! col.equalsIgnoreCase("id") && ! col.equalsIgnoreCase(""))
 				{
 					val = field.get(this).toString();
 					vals.put(col, val);
