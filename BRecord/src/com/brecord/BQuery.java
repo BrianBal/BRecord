@@ -14,7 +14,7 @@ import junit.framework.TestCase;
 public class BQuery extends TestCase {
 	
 	@SuppressWarnings("rawtypes")
-	private Class klass;
+	public Class klass;
 	private ArrayList<String> conditions = new ArrayList<String>();
 	private ArrayList<String> orders = new ArrayList<String>();
 	private Integer limit = -1;
@@ -88,6 +88,24 @@ public class BQuery extends TestCase {
 		queryTask.execute(1);
 	}
 	
+	public Cursor getCursor()
+	{
+		Uri uri = Uri.parse("content://" + BConfig.AUTHORITY + "/" + this.getTableName());
+		ArrayList<String> cols = getTableColumns();
+		String[] projection = new String[cols.size() + 1];
+		projection[0] = "id _id";
+		Iterator<String> itr = cols.iterator();
+		int i = 1;
+		while (itr.hasNext())
+		{
+			projection[i] = itr.next();
+			i ++;
+		}
+		
+		Cursor c = BConfig.CONTEXT.getContentResolver().query(uri, projection, buildWhereClause(), null, buildOrderClause());
+		return c;
+	}
+	
 	/**
 	 * @param where
 	 * @return
@@ -135,7 +153,8 @@ public class BQuery extends TestCase {
 	/**
 	 * @return
 	 */
-	public String getTableName() {
+	public String getTableName()
+	{
 		String key = "";
 		
 		String name = klass.getName();
@@ -144,10 +163,17 @@ public class BQuery extends TestCase {
 		String[] parts = name.split("");
 		String pre = "";
 		for(int i = 0; i < parts.length; i++) {
-			if(parts[i].matches("[A-Z]")) {
+			if(parts[i].matches("[A-Z]"))
+			{
 				key += pre + parts[i].toLowerCase();
 				pre = "_";
-			} else {
+			} 
+			else if(i == parts.length - 1 && parts[i].equalsIgnoreCase("y"))
+			{
+				key += "ie";
+			}
+			else
+			{
 				key += parts[i].toLowerCase();
 			}
 		}

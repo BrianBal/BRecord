@@ -28,6 +28,18 @@ public class BRecord
 	{
 
 	}
+	
+	public Boolean isNew()
+	{
+		if (id >= 0)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
 
 	/**
 	 * @return
@@ -199,10 +211,17 @@ public class BRecord
 		String[] parts = name.split("");
 		String pre = "";
 		for(int i = 0; i < parts.length; i++) {
-			if(parts[i].matches("[A-Z]")) {
+			if(parts[i].matches("[A-Z]"))
+			{
 				key += pre + parts[i].toLowerCase();
 				pre = "_";
-			} else {
+			} 
+			else if(i == parts.length - 1 && parts[i].equalsIgnoreCase("y"))
+			{
+				key += "ie";
+			}
+			else
+			{
 				key += parts[i].toLowerCase();
 			}
 		}
@@ -267,7 +286,8 @@ public class BRecord
 				}
 				else if (typeName.equalsIgnoreCase("Long"))
 				{
-					vals.put(col, field.getLong(this));
+					Long lval = (Long)field.get(this);
+					vals.put(col, lval);
 				}
 				else if (! col.equalsIgnoreCase("id") && ! col.equalsIgnoreCase(""))
 				{
