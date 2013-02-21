@@ -2,7 +2,6 @@ package com.brecord;
 
 import java.util.Iterator;
 
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
@@ -31,7 +30,7 @@ public class BMigration
 					Log.d("BRecord", sql);
 					db.execSQL(sql);
 				}
-				catch (SQLException e)
+				catch (Exception e)
 				{
 					e.printStackTrace();
 				}

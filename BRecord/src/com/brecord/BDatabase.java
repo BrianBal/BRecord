@@ -1,14 +1,10 @@
 package com.brecord;
 
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 public class BDatabase extends SQLiteOpenHelper
 {
@@ -17,37 +13,13 @@ public class BDatabase extends SQLiteOpenHelper
 
 	private static BDatabase sharedDatabase;
 
-	private static ReadWriteLock rwLock;
-
 	public static void setup(Context context, String name, CursorFactory factory, int version)
 	{
-		// rwLock = new ReentrantReadWriteLock(true);
 		sharedDatabase = new BDatabase(context, name, factory, version);
-	}
-
-	private static void beginReadLock()
-	{
-		rwLock.readLock().lock();
-	}
-
-	private static void endReadLock()
-	{
-		rwLock.readLock().unlock();
-	}
-
-	private static void beginWriteLock()
-	{
-		rwLock.writeLock().lock();
-	}
-
-	private static void endWriteLock()
-	{
-		rwLock.writeLock().unlock();
 	}
 
 	public static SQLiteDatabase getReadDatabase()
 	{
-		// beginReadLock();
 		if (sharedDatabase == null)
 		{
 			sharedDatabase = new BDatabase(BConfig.CONTEXT, BConfig.DATABASE_NAME, null, BConfig.DATABASE_VERSION);
@@ -58,7 +30,6 @@ public class BDatabase extends SQLiteOpenHelper
 
 	public static SQLiteDatabase getDatabase()
 	{
-		// beginWriteLock();
 		if (sharedDatabase == null)
 		{
 			sharedDatabase = new BDatabase(BConfig.CONTEXT, BConfig.DATABASE_NAME, null, BConfig.DATABASE_VERSION);
@@ -98,37 +69,9 @@ public class BDatabase extends SQLiteOpenHelper
 		}
 	}
 
-	@Override
-	public SQLiteDatabase getWritableDatabase()
-	{
-		return super.getWritableDatabase();
-	}
-
-	@Override
-	public SQLiteDatabase getReadableDatabase()
-	{
-		return super.getReadableDatabase();
-	}
-
 	public void migrate(SQLiteDatabase db, int currentVersion)
 	{
 		BMigration.Migrate(db, currentVersion);
-	}
-
-	public static void closeDatabase()
-	{
-		// LOCKED = false;
-		// endWriteLock();
-		// Log.d("Test", "Thread " + Thread.currentThread().getName() +
-		// " released lock");
-	}
-
-	public static void closeReadDatabase()
-	{
-		// LOCKED = false;
-		// endReadLock();
-		// Log.d("Test", "Thread " + Thread.currentThread().getName() +
-		// " released lock");
 	}
 
 	public void dropDataBase()
@@ -158,7 +101,7 @@ public class BDatabase extends SQLiteOpenHelper
 		}
 
 		c.close();
-		closeDatabase();
+		db.close();
 	}
 
 }

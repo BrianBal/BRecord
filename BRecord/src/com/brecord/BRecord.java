@@ -68,7 +68,16 @@ public class BRecord
 		updatedAt = new Date();
 		BQuery query = new BQuery(this.getClass());
 
-		Boolean result = query.insert(this);
+		Boolean result = false;
+		try
+		{
+			result = query.insert(this);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
 		if (result)
 		{
 			afterSave();
@@ -89,7 +98,16 @@ public class BRecord
 		updatedAt = new Date();
 		BQuery query = new BQuery(this.getClass());
 
-		Boolean result = query.update(this);
+		Boolean result = false;
+		try
+		{
+			result = query.update(this);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
 		if (result)
 		{
 			afterSave();
@@ -106,14 +124,17 @@ public class BRecord
 	{
 		BQuery query = new BQuery(this.getClass());
 
-		if (query.destroy(this))
+		Boolean result = false;
+		try
 		{
-			return true;
+			result = query.destroy(this);
 		}
-		else
+		catch (Exception e)
 		{
-			return false;
+			e.printStackTrace();
 		}
+		
+		return result;
 	}
 
 	/**
@@ -156,19 +177,7 @@ public class BRecord
 				field.set(this, dateVal);
 			}
 		}
-		catch (SecurityException e)
-		{
-			e.printStackTrace();
-		}
-		catch (NoSuchFieldException e)
-		{
-			e.printStackTrace();
-		}
-		catch (IllegalArgumentException e)
-		{
-			e.printStackTrace();
-		}
-		catch (IllegalAccessException e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}

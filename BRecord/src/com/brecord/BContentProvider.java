@@ -1,8 +1,5 @@
 package com.brecord;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -103,7 +100,6 @@ public class BContentProvider extends ContentProvider
 	@Override
 	public String getType(Uri arg0)
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 

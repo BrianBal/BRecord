@@ -221,20 +221,21 @@ public class BQuery extends TestCase {
 	public <T extends BRecord> ArrayList<T> executeSelectStatement()
 	{
 		ArrayList<T> result = new ArrayList<T>();
-		
-		Uri uri = Uri.parse("content://" + BConfig.AUTHORITY + "/" + this.getTableName());
-		Cursor c = BConfig.CONTEXT.getContentResolver().query(uri, null, this.buildWhereClause(), null, this.buildOrderClause());
 		try
 		{
-			if(c.moveToFirst()) {
-				do {
+			Uri uri = Uri.parse("content://" + BConfig.AUTHORITY + "/" + this.getTableName());
+			Cursor c = BConfig.CONTEXT.getContentResolver().query(uri, null, this.buildWhereClause(), null, this.buildOrderClause());
+			if (c.moveToFirst())
+			{
+				do
+				{
 					T row = (T) klass.newInstance();
 					row.id = c.getInt(c.getColumnIndex("id"));
-					
+
 					ArrayList<String> columnNames = this.getTableColumns();
 					Iterator<String> itr = columnNames.iterator();
 					String tName = getTableName();
-					while(itr.hasNext())
+					while (itr.hasNext())
 					{
 						String col = itr.next();
 						BColumn bcol = BSchema.schema.getColumnInTable(tName, col);
@@ -258,73 +259,94 @@ public class BQuery extends TestCase {
 								row.setProperty(bcol.fieldName, c.getLong(c.getColumnIndex(col)));
 								break;
 						}
-						
+
 					}
-					
+
 					result.add(row);
-				} while (c.moveToNext());
+				}
+				while (c.moveToNext());
 			}
+			c.close();
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			return result;
 		}
-		
-		c.close();
-		
+
 		return result;
 	}
 	
 	public <T extends BRecord> Boolean insert(T valObj)
 	{
 		Boolean result = false;
-		ContentValues vals = valObj.getContentValues();
-		
-		Uri uri = BConfig.CONTEXT.getContentResolver().insert(Uri.parse("content://" + BConfig.AUTHORITY + "/" + this.getTableName()), vals);
-		
-		if (uri != null)
+		try
 		{
-			result = true;
-			int newId = Integer.parseInt(uri.getLastPathSegment());
-			valObj.setProperty("id", newId);
+			ContentValues vals = valObj.getContentValues();
+
+			Uri uri = BConfig.CONTEXT.getContentResolver().insert(Uri.parse("content://" + BConfig.AUTHORITY + "/" + this.getTableName()), vals);
+
+			if (uri != null)
+			{
+				result = true;
+				int newId = Integer.parseInt(uri.getLastPathSegment());
+				valObj.setProperty("id", newId);
+			}
 		}
-		
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
 		return result;
 	}
 	
 	public <T extends BRecord> Boolean destroy(T valObj)
 	{
 		Boolean result = false;
-		
-		int deleted = BConfig.CONTEXT.getContentResolver().delete(Uri.parse("content://" + BConfig.AUTHORITY + "/" + getTableName()), "id = ?", new String[] { valObj.id.toString() });		
-		if (deleted > 0)
+		try
 		{
-			result = true;
+			int deleted = BConfig.CONTEXT.getContentResolver().delete(Uri.parse("content://" + BConfig.AUTHORITY + "/" + getTableName()), "id = ?", new String[] { valObj.id.toString() });
+			if (deleted > 0)
+			{
+				result = true;
+			}
+			else
+			{
+				result = false;
+			}
 		}
-		else
+		catch (Exception e)
 		{
-			result = false;
+			e.printStackTrace();
 		}
-		
+
 		return result;
 	}
 
-	public <T extends BRecord> Boolean update(T valObj) {
+	public <T extends BRecord> Boolean update(T valObj)
+	{
 		Boolean result = false;
-		ContentValues vals = valObj.getContentValues();
-		
-		String id = valObj.id.toString();
-		int changed = BConfig.CONTEXT.getContentResolver().update(Uri.parse("content://" + BConfig.AUTHORITY + "/" + getTableName()), vals, "id = '" + id + "'", null);
-		if (changed > 0)
+
+		try
 		{
-			result =  true;
+			ContentValues vals = valObj.getContentValues();
+
+			String id = valObj.id.toString();
+			int changed = BConfig.CONTEXT.getContentResolver().update(Uri.parse("content://" + BConfig.AUTHORITY + "/" + getTableName()), vals, "id = '" + id + "'", null);
+			if (changed > 0)
+			{
+				result = true;
+			}
+			else
+			{
+				result = false;
+			}
 		}
-		else
+		catch (Exception e)
 		{
-			result = false;
+			e.printStackTrace();
 		}
-		
+
 		return result;
 	}
 	
@@ -334,63 +356,22 @@ public class BQuery extends TestCase {
 	public String buildSelectStatement()
 	{
 		String sql = "SELECT * FROM " + getTableName() + " WHERE (1=1) ";
-		
+
 		// add where conditions
 		Iterator<String> citr = conditions.iterator();
-		while(citr.hasNext()) {
+		while (citr.hasNext())
+		{
 			String cond = citr.next();
 			sql += "AND (" + cond + ") ";
 		}
-		
-		// add where conditions
-		Iterator<String> oitr = orders.iterator();
-		if (oitr.hasNext()) {
-			sql += "ORDER BY ";
-			String pre = "";
-			while(oitr.hasNext()) {
-				String order = oitr.next();
-				sql += pre + order;
-				pre = ", ";
-			}
-			sql += " ";
-		}
-		
-		if (limit > 0) {
-			sql += "LIMIT " + limit.toString() + " ";
-		}
-		
-		if (offset >= 0) {
-			sql += "OFFSET " + offset.toString() + " ";
-		}
-		
-		return sql;
-	}
-	
-	public String buildWhereClause()
-	{
-		String sql = "(1=1) ";
-		
-		// add where conditions
-		Iterator<String> citr = conditions.iterator();
-		while(citr.hasNext()) {
-			String cond = citr.next();
-			sql += "AND (" + cond + ") ";
-		}
-		
-		return sql;
-	}
-	
-	public String buildOrderClause()
-	{
-		String sql = "";
-		
+
 		// add where conditions
 		Iterator<String> oitr = orders.iterator();
 		if (oitr.hasNext())
 		{
-			sql += "";
+			sql += "ORDER BY ";
 			String pre = "";
-			while(oitr.hasNext())
+			while (oitr.hasNext())
 			{
 				String order = oitr.next();
 				sql += pre + order;
@@ -398,7 +379,54 @@ public class BQuery extends TestCase {
 			}
 			sql += " ";
 		}
-		
+
+		if (limit > 0)
+		{
+			sql += "LIMIT " + limit.toString() + " ";
+		}
+
+		if (offset >= 0)
+		{
+			sql += "OFFSET " + offset.toString() + " ";
+		}
+
+		return sql;
+	}
+	
+	public String buildWhereClause()
+	{
+		String sql = "(1=1) ";
+
+		// add where conditions
+		Iterator<String> citr = conditions.iterator();
+		while (citr.hasNext())
+		{
+			String cond = citr.next();
+			sql += "AND (" + cond + ") ";
+		}
+
+		return sql;
+	}
+	
+	public String buildOrderClause()
+	{
+		String sql = "";
+
+		// add where conditions
+		Iterator<String> oitr = orders.iterator();
+		if (oitr.hasNext())
+		{
+			sql += "";
+			String pre = "";
+			while (oitr.hasNext())
+			{
+				String order = oitr.next();
+				sql += pre + order;
+				pre = ", ";
+			}
+			sql += " ";
+		}
+
 		return sql;
 	}
 	
