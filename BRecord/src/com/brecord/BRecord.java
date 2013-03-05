@@ -167,6 +167,10 @@ public class BRecord
 			{
 				field.set(this, (Double) val);
 			}
+			else if (typeName.equalsIgnoreCase("Boolean") || typeName.equalsIgnoreCase("boolean"))
+			{
+				field.set(this, (Boolean) val);
+			}
 			else if (typeName.equalsIgnoreCase("Date"))
 			{
 				Date dateVal = new Date(0);

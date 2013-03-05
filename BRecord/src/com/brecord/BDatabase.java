@@ -8,11 +8,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class BDatabase extends SQLiteOpenHelper
 {
-
 	final public static String LOCK = "brecord_lock";
 
 	private static BDatabase sharedDatabase;
-
+	
 	public static void setup(Context context, String name, CursorFactory factory, int version)
 	{
 		sharedDatabase = new BDatabase(context, name, factory, version);
@@ -41,6 +40,7 @@ public class BDatabase extends SQLiteOpenHelper
 	public BDatabase(Context context, String name, CursorFactory factory, int version)
 	{
 		super(context, name, factory, version);
+		BMigration.validateDatabase(getWritableDatabase());
 	}
 
 	@Override

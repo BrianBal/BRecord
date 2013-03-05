@@ -224,6 +224,15 @@ public class BQuery extends TestCase {
 		try
 		{
 			Uri uri = Uri.parse("content://" + BConfig.AUTHORITY + "/" + this.getTableName());
+			if (limit >= 0)
+			{
+				uri = uri.buildUpon().appendQueryParameter("limit", limit.toString()).build();
+			}
+			if (offset >= 0)
+			{
+				uri = uri.buildUpon().appendQueryParameter("offset", offset.toString()).build();
+			}
+			
 			Cursor c = BConfig.CONTEXT.getContentResolver().query(uri, null, this.buildWhereClause(), null, this.buildOrderClause());
 			if (c.moveToFirst())
 			{
@@ -246,7 +255,9 @@ public class BQuery extends TestCase {
 								row.setProperty(bcol.fieldName, c.getString(c.getColumnIndex(col)));
 								break;
 							case BColumn.TYPE_BOOLEAN:
-								row.setProperty(bcol.fieldName, c.getInt(c.getColumnIndex(col)) > 1);
+								Integer ival = c.getInt(c.getColumnIndex(col));
+								Boolean bval = ival > 0;
+								row.setProperty(bcol.fieldName, bval);
 								break;
 							case BColumn.TYPE_REAL:
 							case BColumn.TYPE_DATETIME:
@@ -425,6 +436,11 @@ public class BQuery extends TestCase {
 				pre = ", ";
 			}
 			sql += " ";
+		}
+		
+		if (sql.length() == 0)
+		{
+			sql = "id ASC";
 		}
 
 		return sql;

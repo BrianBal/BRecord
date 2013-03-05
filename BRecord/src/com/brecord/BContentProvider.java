@@ -62,6 +62,23 @@ public class BContentProvider extends ContentProvider
 		String tableName = uri.getLastPathSegment();
 		SQLiteDatabase db = BDatabase.getReadDatabase();
 		
+		String limitParam = null;
+		String offsetParam = null;
+		try
+		{
+			limitParam = uri.getQueryParameter("limit");
+			offsetParam = uri.getQueryParameter("offset");
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		if (limitParam != null && offsetParam != null)
+		{
+			sortOrder = sortOrder + " LIMIT " + limitParam + " OFFSET " + offsetParam;
+		}
+		
 		SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 		queryBuilder.setTables(tableName);
 		

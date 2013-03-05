@@ -1,7 +1,9 @@
 package com.brecord;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
@@ -40,10 +42,54 @@ public class BMigration
 			Long subTotal = System.currentTimeMillis() - subStart;
 			Log.d("BDatabase", "BMigration.migrate query took " + subTotal.toString() + " miliseconds");
 		}
-
+		
 		Long total = System.currentTimeMillis() - start;
 		Log.d("BDatabase", "BMigration.migrate took " + total.toString() + " miliseconds");
 		return true;
+	}
+	
+	public static void validateDatabase(SQLiteDatabase db)
+	{
+		try
+		{
+			ArrayList<String> tableNames = new ArrayList<String>();
+			Cursor c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+			if (c.moveToFirst())
+			{
+				while (!c.isAfterLast())
+				{
+					tableNames.add(c.getString(c.getColumnIndex("name")));
+					c.moveToNext();
+				}
+			}
+
+			Iterator<BMigration> itr = BSchema.schema.tables.iterator();
+			while (itr.hasNext())
+			{
+				BMigration mig = itr.next();
+				Boolean found = false;
+				Iterator<String> itr2 = tableNames.iterator();
+				while (itr2.hasNext())
+				{
+					String table = itr2.next();
+					if (table.equalsIgnoreCase(mig.table))
+					{
+						found = true;
+						break;
+					}
+				}
+
+				if (found == false)
+				{
+					Migrate(db, 0);
+					break;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	public static void add(String tableName, BColumn[] tableColumns)
